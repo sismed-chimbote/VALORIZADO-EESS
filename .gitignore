@@ -1,0 +1,5 @@
+# Ignorar scripts de generación internos (no necesarios en la web)
+generate_dashboard.py
+data.json
+__pycache__/
+*.pyc

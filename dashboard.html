@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Ejecutivo - Valorizado por EESS y Microred</title>
+    <!-- Google Fonts & Chart.js / XLSX / FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --primary: #38bdf8;
+            --primary-glow: rgba(56, 189, 248, 0.15);
+            --secondary: #818cf8;
+            --accent-green: #34d399;
+            --accent-purple: #c084fc;
+            --accent-amber: #fbbf24;
+            --accent-rose: #fb7185;
+            --accent-cyan: #22d3ee;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(129, 140, 248, 0.08) 0px, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-container {
+            flex: 1;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.25rem 2rem;
+        }
+
+        .header-branding {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* LOGOS ULTRA VISIBLES Y CON CONTRASTE */
+        .logo-box {
+            background: #ffffff;
+            padding: 6px 14px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.2s ease;
+        }
+
+        .logo-box:hover {
+            transform: scale(1.03);
+        }
+
+        .logo-img {
+            height: 65px;
+            width: auto;
+            max-width: 180px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .title-container h1 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .title-container p {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            margin-top: 0.2rem;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .file-upload-btn {
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            color: var(--primary);
+            padding: 0.7rem 1.3rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload-btn:hover {
+            background: rgba(56, 189, 248, 0.25);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        /* Filtros */
+        .filters-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .filter-group label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        select {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 0.65rem 0.9rem;
+            border-radius: 8px;
+            outline: none;
+            font-size: 0.85rem;
+            transition: border 0.3s;
+        }
+
+        select:focus {
+            border-color: var(--primary);
+        }
+
+        /* Metrics Cards Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.25rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .kpi-card.sis::before { background: var(--primary); }
+        .kpi-card.intervencion::before { background: var(--accent-purple); }
+        .kpi-card.ventas::before { background: var(--accent-green); }
+        .kpi-card.exo::before { background: var(--accent-amber); }
+        .kpi-card.soat::before { background: var(--accent-rose); }
+        .kpi-card.dn::before { background: var(--accent-cyan); }
+
+        .kpi-title {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .kpi-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin: 0.4rem 0;
+            color: var(--text-main);
+        }
+
+        .kpi-subtext {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Charts Grid - FIJADO CON ALTURA FIJA PARA EVITAR DISTORSIÓN EN ZOOM */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            height: 320px; /* ALTURA FIJA PARA RESPOND DE CHART.JS */
+        }
+
+        .chart-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Table Card & Paginación */
+        .table-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin-bottom: 2rem;
+        }
+
+        .table-header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 0.8rem 0.8rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            border-bottom: 1px solid var(--card-border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 0.75rem 0.8rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            white-space: nowrap;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge {
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-eess {
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--primary);
+        }
+
+        .badge-microred {
+            background: rgba(192, 132, 252, 0.15);
+            color: var(--accent-purple);
+        }
+
+        /* Controles de Paginación */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.25rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .page-btn {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .page-size-selector select {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.8rem;
+        }
+
+        /* FOOTER DE COPYRIGHT MINIMALISTA DE AVENGINEERS Y AUTORÍA */
+        .dashboard-footer {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: auto;
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            letter-spacing: 0.02em;
+        }
+
+        .footer-brand span {
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .footer-author {
+            font-size: 0.78rem;
+            color: #64748b; /* COLOR SUTIL Y MINIMALISTA QUE NO RESALTA EXCESIVAMENTE */
+            font-weight: 400;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <div class="header">
+            <div class="header-branding">
+                <div class="logo-box">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAuIAAAGMCAMAAACoKze6AAABj1BMVEX////+/v4AsfX/CRUAqbIAtPcAuMDJ7/HV9PVQwcgAqrUAAAAAtvj/AAAAr/QApe0AYcHn5/J+hsQAi975+Pu4tNoqU7jLy+QAe9FLX7cAnukAqvEAluQAkeALAADCQ0zT0+fOQEoAW8Hy8fhMVbSsrNYAS7UlQq1Kk51tbrkAccsANqoXDQ/BwN/h4ODd3O2en88vXrsAPq/+8vPU09P+5uei4+aLh4i9u7utqqv+2dt2cXL+kpZlYGH+w8aYlZb+q6//bXNWUVJ8fMGOj8gwKCr+ztAiGhv/fYL/Y2n+naE6N6X/TFP/KDBDPT7/N0EAKKIAAGcVE2cZEzkRCB5iXbJGQqgAFJ8AAJ2lpbVbWH8YG3sQDE8FGocMADJiX3RZWaKLiZotLIIhHSqGhaZFRpBiZKF2dp5DQX5ybnw7Nl0BAFIAAHsZEEQAACYgH2XbGkDGHFGqEliTG2vRF0mhFWVZJIh4HnfPdXmsNGMAUKMEk60PgqsTcKjJp6qjPoDtVGqCQZJKRWGzi4/iw9QuiFBYAAAgAElEQVR4nO29iX/jSHYmGGQudrwtiid4iIeGywvDm6Ko0X2kSB2ZuthVSZXbmdmecbc9Hm+V3e52d826Z3aO3T984wVAEggESAQJkBAzvp+PqhIJRjx8eHjxToQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEvAgf8i2KdS9dQGAmFma2ILrAW4BTBBckF/AknCS4ILmA9+A0wwXJBbwFFxguOC7gIbjCcMFxAc/AJYYLjgt4BYLiApsN1xguKC7gDbhHccFxAU/ARYoLjtuAz37GxPSD6170m4Ir1Ba3wgaEfFcEJwQtbgI/hIBXBsdELW4BB1yXurgpUwh5rgErEPpcrFsGq4OQ5uqxCpnbw7olsRIIUa4cqxG5baxbHK5DiHHlWI3IubFusbgGIb9VY0USXwDrloxLENJbNVYk8YWwbtm4ASG7VWNVEl8M65aOCxCyWzVWJvHlsW5ROQMhrlVjZRJ3DusW2XIQclo1VidxR7FusS0OIaNVY3USdxzrFt1iEAJaNVYocVewbvlxQ8hm1VihxN3BugXICSGalWOVIncJ6xYhD4RkVo7VitwlrFuI9iFEs3qsXObuYN1itAchmXVgHVJ3BesW5HwIyawH65K781i3JGdDiGZtWKvoHcW6JTkL65aNt6XjMtYtegexblFaYN1iYWLdQlkl1i1rJyGEyIm1CWylWLeUHYUQHi9WLTFOrFs8HoSQPzdWKjKbWLdMPA1xG/ixOpnZw7rl4XVs3H1YwW+tSma24PZmNwCbdh/295eYPGsTK5GZDbi9z03BRt0JtH91dbvv+k+6LzMbcHmPG4RNuhNIvnrZfrxyneNuy8wG3N3ghmFzbgXyXTy+295++njgsrHirsi8JtYNwMbcCXTw/h3G9rv7k802VVze3AZiU24Fun3cJhzfvpI32VRxd2sbiU25FeiEaHHM8Q8nm2uOu7uvTcWG3Au0f3H/onL8/sDl33dHZF6U6mZgU+4FQgdnT4TiT2duu1VckZknpboR2JibgdDJo2qrPJ25rMddkZkXZboh2JjbMaH4u6d7l+1xN2TmRZFuCDbmdqCLl3djvL/dsMnLLm5m87ExtwNdPY0Zvu1ynNN5mXlTpLPgxTVZYUPuB/Ldv9PhxU2D3HGReVKisyEvRvI1+SI24n5o8c2JIn9y0XnotMi8KdFZQHI+ssjX0FrU/4bcD3T7+M7A8Xf3+5tBcZc2sRRQsdMpcq8M+VrHvTVwfENuiM4UH+OjW6txWGTeFOhMIHlQanKmSiAkH53fnGvfWuXONuOOIPmMZvi7x9u3T3F3NrA0MMWH1SQXxxFqXT7v7u72kPovrbc6r2xVqzbtYv/eRPF3Z29ejbuz/OWB5I7SjUY41odQ7/Sm0djawhTHBD8+Pxw/IO7vczPuCTr5YKb4o1uZtc7KzIPinAesxQu1RIdDjaPeeQPr8POjIt7V0enN7vMRUvW5r9d7U9mh7i7Veg/7H02muItq3FGReU+a84EpHs7WOMxxJB/eNXbvLltYdsXL50Zjt3HoI/6V1uX1ee8tZRW5utIZW7h4ZDDcNTXuqMi8Jkw7wIbKXjpd2Ena9I8gdHwDDJfxrlrnd8Dwc81iub7B/53fO8O33Dd/VzDDGWYKxtNHd1xUjorMY8K0BUzxRDqQU6I2uYl6141GgzC8d72LLZbrY9mnWiyY7lvnPeoyDkvhzd8VUrjJxgd31LijIvOULG0CU7yQlfwpxZ45jnyXN40t8Bei1vVWY/fmsAcbLB4/A91vTo8MV4Gty3Kknc/n20VZdkAUb/22oP2rFwuGv4PkcTd+cgVwYdnOQaV4IFNLNO28J7Fx0ti66U0YfkR42zq8221sNU57+mQA/N/lfLMz6O88YLxWB4N4PrKsPN72jSG1ENtWFAffuAtrclRkXpEkDzQtHkhXSm07FO89726dFvGuDgnDEZjhvfOt3d2ta6D75HPA707/9Ye/fOgPCPqj4V8OR4NmZCmJvOkbg9DJPcuXMsH7A0Fx5wHHTUxxv5RT+vPNceQ7vtndPcJiO8InzSnD8QH0UB8BwgRv9pUf6tVyMo8tFIJIsjkoDR9GnfYyMnm79wVhI8XKDJ+YKrLzy3JQYh6RJCeQXE7kMMX9UqrbmWuqIPkQs7nnQ0VspmyBs1Bj+M2xQYUXy9XhD/1ku0iJItIuv/5QKhcXl8qbvTFzjJSpOe70uhyUmCcEyQ3wqBCKB4LhenMuxVvnu1vPmOJHjcbWNRwtiU3e0KI/6mcQaveHyiBizl4BeRTjI6WfXFhbvdE7Q1T49jyGg61y63SasoMS84AgF8CE4v5AqFCaF8hHrdObu/MW/n/4eEnMFPkUM/zawPBIWRkOmNYI/De59au/+vwKD8Bi632Ldwb/1u39OxsEJ7njJ876xx2U2LrluBjAFs/5CaRcfZ53HNvYraMWPnTeYCWOP4t8lw2sw491DPe1+/Vqk6WKsDTk3vHpTWP305evnKlf+ou8tVuDf+ng41wbZcLx7ZePjjoPHZTYeuW4KIgW92scT9XnmePapjCxt4DXqPe81bi51DM8OXoYsGxt/J9aR4c3W1tb4EH/9S/BIl9kvW/t1gDB7dkoU0V+5aQed1BiaxTjEiDHTY3itsxx+I4PW+Q3LczwIpgpp60pw+XmqFQ262cwUHqH1w1Mb8zvxt3d81//h9eFOP7G7g3+FfCjcBAcOO6o89BBia1NjEtBT3F/IJ2Ya477yBGzsXUKmubobrdxPU29wgwvMTK6CMFPn1X93bi5Pj0+6rXa0YX0+Nu5N+Qn9k8+fnjHo8IJXi6mIl160Q5KbPVCdAIGivsDuXp1vo2MWtgUP8T7kw+3GneXeoaPWAwHgje2tiBlC/P7qEUioigyKMUXKKnzyN2Z83348/7+/u39Cz/B370DS0W3wv0J5v8wcyluYjHxrRJGikv+VH0wd9kIK++tS7DEb3Yb562pwslXzQyHM+bpDVHgd8+nxy1ZvUkIXIsKf9moF27O+LsWVyB/3j+5OPvw8o7TRBlT/CPw+eDg5Pb24uLi6uPZPcHZx6uL2wOZ16vooMgcFOIKV+rTU9wvBcOvyTkLR+jo5q4Bp81LrMSn3hSsl032NRwyL1WC31wf9qb89smt3n/8m1feslEPUJyYH8C9E4v1+fYPbi/OQH0voMBVfPj4EfP6w8sTuYgeT++vbjmnSzgoMseEyF6nT3YHnUTMr+N4OjGal6yCWpeHkGFYxEr8uTc1U8qvtFbGiz7CNjixUI57qkjITlq9y9Pnm++/VtvrU0lcvztdgLx/ewbkg+Yn5tVhq+Lk6v5lcXYTjAnN/MvTez7PuYMic0iG7FX6ism4O+grsaDk15nj3bm544SlCEKcjdNp4WZ+VDU+HGCjHN5hG3zr7pwQXFVyxd7RJRw+8fHzy1deU2XNtweilITAGC+m/G7kO7i4OntcxPzm4j9fZrmDInNEhuw1+or5wU4l4Q4KOUmvxoM2csfJ7tBhA+yU8X/Cx0ejuxCarTyDjXJ3fTkhuNw6Ory+A3oDfvNPvKbKem8P2j+5f9IIvP1i6guBThY7XnKDK7PcQZE5IEKLJRaTg51ELeYSciG/HlImXGraWD1C51tTOwX8hcZCfuSDY2Zjd+sG2+BjCwXbJze7hN+Nu+fr08Pfvlbt5PDqf3WN98eQaLJtKrZE+2crIThnnaeDIltehOwFyvkOJnguKEmS3w3QVw3YMMdhYTJW0RN/Cor0X+P6PUM7oQao8PNjjeAIG+DXDZXfz+eHh8e9lhzpf2VEimaKY333Bx3c6+Lwj3ScHfm0OVXugyv+6aDIlpUge3lypAwEz7jEbxblpVzFRiknuA53T8f+Mzmu9HVKXKt1a2w9H0KpvhbefG4Qft9cHx61ZFLo5ou//m2e5/C0xhuEGa7zAT5e0MbCZEzVCsA46q5CZEtKkLk6X7EZTYRjKyS4n5jjifm6FV1iCh+O99n7OyU+pSo2ww9vwFM4UeHYRLneBYLfXWP1LY8lhJX/j7/lOXGu7wYZGf7uvYnhjE6FboGrzNNBkS0nQebasI1SKqRCKyU4cDxTK80t5USnJLSp/rP8q7+p5qcecmyG32GG35yS3p5wyDxWCU4UuE46SC4//F2PSyZrukHE0NaxzGyJ+5gdgFwBVwdEB0W2jADZS4vEq4laOhhYLcGB4+nCXI81Pm1ujR0qqPWfvk5tG4hnQsOs58uWpsKPIL6JNfj5Za9okA1CydIvj3l6ca3pDiHflTEf1mQOI9/ZyijOlafloMiWkSBrZXJ+UArDKXPlDMfIJQbzcsdPn2+uj8hnsNb++68TT6N60ISWcJqR0rsE3+EWEFymBYPao1/+5xaPWNZyg5DP1IeQphmm+KoY/u6e54junMSWECBzXUWswldvo2iQMilWUqxhhb2joyP1McB2ynejcT8tzPDrBnhS1AaHQPg7iG9eX/YY5WzYGP/6D+toVc4HMFOM2H65MK6a2W/WHTxxdSP3LMOxFb42FQ4cD9V2Zpvj6nFR/cfif/xx7E9B8jF0yWqMzfAWqPDdrbvDHrMoGRUHD//XkfcpfmAunqfUOLPfrDvga0buFsWXu2eQtIet8LURHDieDs8xxye7xHbKX/+otahARcLwm0ON4fjcCeGf8+MWWyYIxV9/eel2Q9tlAZa4iWhPV8Zg7u2cFhJOYfvlal2hBMcoDl1IqpVYZo0Eh4BQbK45Pl6vfPQP2mkT63Bo/XYDjWs1mwXCP0B4i0vBefO65XWKM42QxwvdpvBTYNnKzVG8vL/iq+30IMWhDUmpkAuuleG2zPHxguXjn1SKa3b4DXGlIMJ3fM58Pp4xSAK1S7/8Dd3s02tA+0wjRD+EalWBnw8XB9xza7xGcczwjlJIm+Lqq0c6PMccH69YPv4CNck0w2FeCulWO6trCsoDxReW1mqAZCZ/X6b6FKEVKfErbm55kOKRgRJOr5/gWI9nC31bjQ7lyy8PUThN9s71DD+9gWaeh7NnAQHFd48WltZqYBW5nJoqEPtcBZ4u+BMPvEZxYHgt5AWG+6WgPXMcU/zXn4HivdMGGSBBGA4Bzt0tLfwz48vt0uctz7tU0An7LPlei3FaDDfZaIovLMvIoFJb70FzCpvm+JjiLYhpqlobqROBSLvaOV9Olr57AxRnG+NQZan6Ti0b4zuNK/7kGm9RHBUHSiqzbmpPka5V549IwRT/x8/9onyJ1XbjtKU182w0Glvn8xnuKz98eQsUtzhMfrglvtHVJRnyj0vxFsXhpFnzEMPhyNnPz9sNofioCe5CfLacMHxX/Zd5O45+/XLn9eMm3uJHNuNAjc/tG+4k7vd5CeYpikOFr7cY7g/GKoO5zTzl49989/pX18Qw0TO8NV/joEj18z96n+I+dGtB4scraJeyMoa/+7APJf77HiiJWEiMKDkKe+OkOQHk1c4zxzHFb758/SfM6mcwTIhjZRcYbqc8rr3z+dOz10M/5LxpUdHz8v79quxwwNPHi7MPj+8v7HPcUwzPVwue8BYakA6P5pjjyHd0/evP333avYFIPHgLoXOhPYaj5uuXrUOvB/BZeVjrwtMTNCC6tx/h9BLFi30l5zmGQ+54f07uOCb11j99/mkXGniOh1vZYjg0xsWnzWOvnzaJZ3zd3CYYd1h5kxSHNsip4LoJbYbkn2uO4/Pm7pfPP5HZyfifb3ZtnTSJ9PM7X79/A6Y4GOMvK6o9psisdgya/NPTy+P79/f3F/ZffJ6hOH5ll2qZxQt8pMAYTr8IpGBqTpkbtlSef/31b34FR02Sh7V1bS8FHPlAiXs+CwuA9j+skuKYzU8vBE/qURb/2+P7s4uL25OTA7WBp+2Ve4bi7YUNcWC3FMyks7lcNp0O+YHnjnI8HZ4zQBy1zre+eyiDNI8Iw206usGf8v1bMMUxVlh9DE1aPt4eqDiBBoqY2CcHmNqLMMwrFMf6rBKbzzYmv4PZWCpcqNSHwx+G9W4iXEvlQpKjyjxbmd3RBxUPG78mDQphavjWjc1qTKLEP915PvBDYO1TcZ7g6lQrR1SnhyieHC3iEZcCwXStUMfcfh1V+xjVaukB/5sCjSkcYzmY4zObD2JqP3/67qEjt06hUYrNEgfVEt86fRNKHD+GKytcgzYpzsnEIxRHxUEiy81IKZBJFeo/PFQ75WRE1n46km92oqXhsFJL+52yV+Z2ncBqfPf7z6X48c1WY+vUpm1NIpu7dzwF+OsEurA9k2oJQOvZMycZ7hGKk7Mmbw0EJnhMwfwut/W/qv5TESYVD8M5pxpUSKHZ5jio8a2fvn7+vkHchfY2LXcevvtk++NrB0KrSER5eoGwjpMi8QjFI1FuJR7A1sPwYZAsMn4O/lMkXh0OnUrLlaRsZaZ3HMmXd5++fMWUfe7Z2z481vis+fw2LHEAVuOuE/z+9sTpAcqeoDjyNUspvgxaSUqHMcHzlr+FQJVX65WYM4pckuaZ463z3X/8/PXLb+weNVF+9PWn3cbbcKcQIOS6Nf50tYCCnLtsL1C8yK/Ec5VhddacbViEnPz7H+sOKXJsjlfiM+gIvnFsjv/4nyK2dg/ZCl+/NHbt2u2egGUulpMUd37VHqA4eBb4yiCkYKwLU0dmEBx6eZ8//+anz0OHquSkUGG2OS4f32COP3TscBzJyerwu8auzRCRR4B89y4fODeW4pM59HbZlqnVS3HLXwF+t460XvWfvvvRmdwu6MncnxXIR61L4Phw0J4/ZKIY3/nxyyc1M/ENAZ24HMUHQ8XxRXuB4u0qlxIHho/ylka4DxQ4DBvZbTQadzfPf/dQ4fdHsn7Wn5o9RRBBx2XM8WpzxvsFRC63Bw9fgeGe7xFEAfksKiMcozhXKzebi14/xZEvnkhxeAyB4ZaNqhAZNf+sztK5ez4/PO5FOq8VZ/T4PHOccPzTlx9fO23LUwL4eprV4eefGo3nt+IRn8LtTJVNpXixU+BRs9gOt2I4ELx3qI7ivnse9/JG5QdnbJUANsdnzXRQW6d8wvb/qBwpMry7CKZeJAevP373/W5jfumy94DQlcsUd/5s4gWKt/thDjtFynVHFjyDTt6Hz+owhufD8SRuWe79/ZDnF6x/WsomojPzaiHRsLH76Z9+fBh18kVZFQWaSNpXjDT7pa9Yhe/ezS9d9iJctsY30xZHqLnDYadI6YLFID8ybQQTHCYVa628YT5D7/j0+ua7YWol5riPtMvfbXz/3ddhqR/PRyZ5BUDvdrJTVTDBP+02ng/flC9lArTvqlNlMz0q2E7Zs29GYHuYTTKwUY6vYV5U4+b8WFXgcrF3fH1zh9X6px8Vp8zx0ixzXDVWru92G5++fP36+jqqxvMqks3BqPT6QAiOH8GjWU3gvAx08mFh5/jT07yvvmwmxbGdYj86I+XYea1k2sgd2OCY4D3VKmgdHz43yAjX3cZPQ+4cGObPB9Lhmea4+jIhv/vppy/fff1af3gleHj4+vXzdz99/2mXjJp1Ng1jhUDo4Or9IiR/+t0///4Pf/jd7A898je7srHitVM8yRH3kUK1V1ZB/GRS8Y1KH4j8HJ831BnFN8/nh7/6D92cE5H8ud5xItPi0eH1DTxdQPMxvgC9wcvzhgnuI4w5uOKuuX/6lz/+SalUun+Y3dyToySTZ8HrpTifKS7lFAbBNBXeICaurBL88lolOOb35RH+j82HsCPtnLE53h3Mj+3gJ+z0+eYOaP6bTwDyLrl5vj48br1lggOwgC84yyN+94c/KeFULld7+P2sNwC2UzaR4r64/dCmFKwpZlMYm7/H12Tk36nqJSz2LjUNTvhNNilX646ocVhDd35PZvyLraPjw9Pz6+e7BgA/aueneDEW0yLeFqCHIQ/Hf/ezUouFwMwr/OlfZnyOZ2Ks/cWuneJyx34KlsSa3Y18vUNtYFSLeJ5JbJNMcT09msxIQ/FhzZnEWmKOz98iedZard7RIQFmd68l88nGu0D7PGHO3/1c0QaTBWOVn63N8Q9cM3xsr3XtFC8ObOdJgZFAu1PQeNj8zalK59bxORlyiRlPPOPjz0VeKyFnCiSkrFKd1wROJ9xWsVhsFWVewXgcJ/bDnE9/VFJaSrOUSSkW5vj2uw8cLa44sH6Kt/u2012lTLhEJfuRYfNbhNDERiFuaZiQdn5oHHKJfP1h1iGK+1OKzTFAegnbl8kbAJKvbJe5/e5P4YlykUIW5vj20/2tO5GC9VM8X7V92sR2CuUxVNNCsBI/P5KJaxyfMkGDP1/26AA6tlRSTpW5wZFgwzjLC3Tw3ibFn36vxKY3WMoW/vTP1Adenp5ePlw5WrCpX+naKZ7cidn3p1SM2pP0DxzPAFT9KuSQeXhkLndDbYd8Kn4tWcUqTeYbgc9utfLLz8YMoVzlT3pzfPvl6uLq6uLELT+Ta/u3v4Dmnl2KS1Ksa3CKY619ilW2OmweVPgz2CiaX8X0S8WSU8Y45ni2yzbH0V/8m28Fvf/yb23h/34wRN2koNEc374n9olrL8X1U5zDZyhJqbreZQh9vNWhf6CzwQonfhULxzOSq920Y10nJHzwZZmO6N//H98M/p09/K1i9NaCOf7HqTm+fYZ8PIzhxfopLpf5KD7lFUJH51vaPB2YcQlW+NbNoVX2B3jGHaM4JKs8sMxx9O//9//tW8EvbP31F/9aocQupcMP/6zT4u6eat4wxTHDr3e1aSNqojYGUeFWv9SvO+RSIYsJJUZJhjn0DVHcHv5cKdAeMymrM8e3X04ExSeS8demFIcGmZA3e0h8hS0wUrYapzMS+ECL6ygumcDL8bRSNXsOBcVp/FkxZdlJ/lj354mpsn3lqhp/WxTXaXG1BezulspwEvzZer6clYMNWlz3xgwSqP84pXmAB6luXFB8Hn7xXxVzjieYeb+fUPy9C7lXujvyRilu0OEysL2x+3wsz2w7aLDF07VaOFwzIWWJmBmpYd/0g4LiFDDFGRVXUrowNVWe3Ilqju/I+inO51FRnYaaHb57qR40Mdsbu9dzqgyQPNJ5VGJKqVqt7uhQMiGh6FBJVAgSOtRLeUHxefhzpZIz9QiWgrWHST7W9iPHzAdeuMVwHqdhc8c+xWMKobjaxpswHF/gmIQ3T+cVioFffDqFIrZTjhC0dcgbkUw2LREnaJp844LiNH7x3x7M9QB6im9vv/wX99S4ByjOGd2ELCxtrmXjEv7Zd3kH5faHc2dcorZSmBqFsZ0ma9mkmFj7fxjyPJh/RVCcxp//1TylDFN8bKhsb7+/OLad8cON9VMcAvgcOSoFaC+hTW49JPPRyHi0u8uZzXnUH4r/oMtRIRRfXjzmrwiK08BqPOWnfSqhws8v78bdxOXjo7cW2+RMw7Jd1yZlwq9JGAF4hxmuTgA8bNgcPILk/g/TKJsUSwzmTBpcDJjiv/i2MJ/ijANnIJ34+QkmsD2e3e4jdOzaWEZPUDwStV2djM+bSkeWx3Mtxwy/syMgbKfoTHF/upaoxuerfm5gin9jmK/G//yvpgNnIFv54/b2h6uLE/CCoaOjN5aDxUfx4sB+qyqo+slf3sBMNL0Ot/N7qGys+snEColo3vnsn7/4xvD//Nv/cy7+aLJUArH6fz+7PfCpZx505JIWd5HhrhW2BWvKXwHDn0nU/pIk0tpjuFw1VkRIUihVUWx1SuaDm2L1HuSrl+15ePe7P1HRH839O5Y96rlCcXd3zrEOOb5nfxqhlKt89wkrbsLwY2Kl2HvH4cNmTTImvEnBdE3pJ99i2zXvAN3aqFOGsh8jxbGq0nWjQa1j5ycJuEtwziYTmOL2+6iEv/60dXNEGE5qkm0yvDgy52BJgWCskii7YJF/O0B2ajhffg6nqXzaQkkXUkDypaMUd5vdnBTnaxUE55TPn0hQ8wiyw7dsMhyVsRI3/whMDKpHnTdWvh2gg7nzf7a3n/5QMFI8kK4YU9icPW96juIcLhVSMzL8O0hMUXNUbNnhpKiNnSsOkzuVEbsNqIANzClTJrb4y//4n1R37QCVpYnkY5tz7myuymMUlzs83b+xqQKlP73rrUZjy+YpBRWrP1iFUKGhssLqISdgC7OMcXzSfPdydnsQiVJzOgK5LtXCoHXpJMe9RnHU3LF/3gR/k1Jqts53McMP7TI8+oN1ZTIYK8pAGCsLAh2cvWNxHDwpLx+uTg7wDY70E5QtHqPaCyNfz0k97jGK8476gXz60l83GrYHcSO5PExkZtT7BDK1uoMc55XHshK1+YFl9jLzE6zeb9j+fvxwtq92CEZtiuKmOvMxxxdao/WyXQXXeiJRrjkl2Byv//J724O4McMf6OpBmuPBVLffdsw1W9TBMl9rsjzrZC87m9OyxbR/YeTMIPJ3efJZDiBtbVbX1j61//HJyG78fx7vrw58GhGQLz8ynrbALU6ff2BGk2NuFc9RHBvjOfsMJ1q3+/nXz7YeeoSKnYfKvJpNaHzgEMeRrzmIYgzG6GAMLA60WFDFfLPDRjmuR57VchrJ+OvxMvlsM9mW6Yx5+ECyGccXwxeIcHXtx5+V282yuhB87aJs9YzorPFtYn2/P7s60bEAyc1XY+gHco3yZsH1nBsN4y2G805CAY77U/Uff2vHn418kcEwMb/wHlLRZ864t78beTCsFAoFUj8BtRRdjB8YVZ4aAQc7Src+RrcL/8tA/Ycoo05UjsT7JUX7iJKoRuPtou45RfoPKKVqOTKzLIpaWgSmttS7sDr4crScL7K/jg7IbBSg99PTy/uri30jBfBrtJ4yeGzBLW6eg5u5srIAACAASURBVOBoAGhl7LW5nHaVw21IZIS1Lj4i2mjznazWw3ZaS2ALHzqXL7898IGmg5lMJhjSkA7l6mVGrT5+/OLRUiUcS+uQzWbhf2nEzE0UYT5tv1KpxXLkE7lYKlypjAZTbY+vj0ma0D4QqyUq1c7cqbdjubU7Vby0VC4dSqvXTig71UG+yCA52j8DDf70gq2Ti9sDE0nwab9rTMOSQgkWxeVjJyd8eYPb48XA9GQehhNGFupkhKv1usiNKtVtNgUFjs+exmZzM3B4DgQMpc7ZbtN8Q33FZD+RqKWDdmqi0wlTR15MYKWQCvm1H8JqMhiKhZWdZnEs1WRVCeeCQfIB/Gf818qcqbdTue1UCql00D++djATzNbCFSWaN38f+S7efwDj5GCfxRPky5cKxjZkUloZMQYhyEdHTqaqeIfgauUPn6VCsqhqdSUKL2bm4hC8apvVeiVmOxldSnUHS3McW10lei+BlEln4dXlByVgkamskbm2bKVDeyDy/UoNCK7bgCRlcoWdMnkYkBwvVWJBXfMM/NdYuNSJzCsAxC8XeDYy9LWDmOUVhTH+HPkOegcygyYqdeRml8rCws98n2V3OUtxPo47+LvMtUR4JlqNpR6MhYevgyQYmIY1kn+Ri+14v96tpSXb3YEkbOF3ln1TIl95LydROUcFuv8hoVEFL87u45etGJ1syJfEBM6Yy34DoVoJzraY4UqY3rwkpWuV6MxjNXn2EgWsGMzPHlbp+Pv4NWHieKtHKXc9bYrlLpVLK8VMbeJ9a6a4gz/LXkuxY38Yiu6GhVKFercfT0bwQcg3Xawsw4TLUb2LX9M87a9g4GF8SSEzJgJImW6UVsHYgipwLC5AURyhdknJsR4QiRT/wYvxNcxoUgot7Ge9qhCKlKvjkQ6Mqwf82QJkIFPfknstw+qwisE6pp1PAvDDbJQIvC8Zkx3BNe5olNlDDCeWCk/0ZyorbF926zv9QTyZj0SIIzrSzjfLg2qiXkllM5wtrqRQWDG1jeDcijmOFcjWO8iogsHIsK3C/WYtjl973RjbxJECsS42VdrVBDPWEMik9sqWxcCY4YPXcHZG4qeEFbkpFgwU1zXi82EVEy8P+tWdUgIadXQpiUAqLcuL6nhOrYcoTkp/bNdFGO5YIJRNhStd5bXaj4ILehDtj167lUI4ZtPMNV4uW7E34sR6J+ZjRSBXNzT4JAxPcT3RUs4QDUTyQIlZPSGBULjaTEYVi6QcfIbZsZrGBQxX5j17gWCqQnEc+Vo9bXnE24hVjNKtJArhsNqOKUsVRATBLc5YguNp495hOLRg3ksFOe75VFxSIBhKx1LhguqGrlQS4VoqG8rwNykkl4vNnzg4cyMovhejKR6rJw2EaEcT9GfmL0tHcSwtpWapaSUpVyiVrJ8hKVuw8Bxh+2kA35uzNEnluOGbYIz7VII3ozuKUsD3IB0KZYK6vnrTC2TCJVPkB9A6cjTf0Geb447+ptVSuEYo0/cUjvuhdDYXAxdwOhNcoAnn+Fp+/A5dYstILu9RryNJqhmsHxTpJDj9R5DToTNesSHOsrOne8ilUtaOJMxQ9oxzbOD3bTmg8BUSRo5jird85BRd7pe64VQuFJzREVWCGRtM4fWOnJ5p5xmGE0dEbCE1rgpNh8DC/AYEQhXz2EOOfURMp82An6pwaXKfOyD2OmUlNlO62VlGGNn/DHM6HWapcbBSKqaGJ+wrBFPGTEEkt2BuQbHZVypkwObMe4ApzpYxah0d9Vqs8NLiN8QzFF8gwsmS3ZLf96sKcwnPIWP+nJSp9PUXbPe5ks60RSUm5zOEmg/mXq/U52f9GRN0J2mmEYpg+93m20XKpErG8y82xrGZU+rWsgZfPROBdMLqxIM5fnQ0r3Uf1w3xEMV95RJP1rhrwGeh0uKmCuu0me3qwveoWE7YbnA3WZOUSkxIiYrVOYmTcy+XM8VKieO2yzGoPRQ2KGJsY/Sa/Tr4020YOukKY8q7dh0Zs7y14ji+Yz82ZylOqHH/PA1mAwF8AxZtsccwxf2BlDIN3+MT3QLb1FMcK/F6it9XZLhcKGyiGDTBnvNuMAAb9Ab3Kj5hYBWetmfnpCuWqRKYcDKcOhl/WPCWeIjiPqzeFrfG/ZpBPv3HhS/jTz0sqsZJDhZN8drrlAzYEk/wv6wwxSemBYpUE0sOnmNYKggl2UdYywEaRorDCaNiS4XDNXMKI7ipY4Iuq1ZHQ/c4vtiFF1hKu2oaCmP/rqlOlVxObW6fy6Yziww3Ua9Fl4dz7YHW0ZI/rEs5wkc6bkucxEqq+fHsgHjd0iVu+3q5BBX+QZFRxRyYAJlmc7ksI9gZrOkpDilfBduG/LiHtiU0/wxhHykOabVavbmth63uiYco7oubEphs3jFyKyCZtNslrnFF6UKSaTq0EMlh/veCapzRg1TKFKo6nZTf4TEHJteo9dvaFYpLK3FwjVPGODhpzA+OlEljmSYqCYijUX8M1ka6d5MPMzxnu78wO36vX02PDHfHzO71jgiOj44XDgt5h+KQV7yAhiMZdJDoWe+Oop1OGdDpDPqlbrcSTqXnHu9ZF0wnFrPGWcUd2LQfTISI3+cV7sMmMZ7HxitqKqmlTyxSumDwa+N1mwfySP50qrAzAIlG9wp0JClT0x03UTtqW4drsYfZB0pwHgK7j+H/9eBfWq2FSzu9w/AFM1UgD7pWqe9Ey818ZFwqWSxGkuUOpnkileNNVFFDG4x5gzZ2gE+btDIkGSq6DzDsAd0vM40r/AyPKY58URs1THM3GDJ6xomThmZ4MBcuQR4nRrsZTaSMf87oPCqoWDaFdGf9OlB8ptWB1fjxMaF3i9xNqB9Fm0BxKI2ocJ7FIBGr0FWqUJlo3Ayk0ybLI6VSy3Inq8CRfxG/FSoO9kynzVhd51ApdtjZUdrvgr3FQqqi1bXhU2FtaSVObHudyw+f9Ov0u0XKxBLVeETWhNnuU71VM+HJFZAc37FZd6Je2l/rMvzyBoD1LRvv6PGiDbO8RHFsyu7wmSoBfzbcJTnjpqWSxcvtclWppHiS+giMhyn762/3TaZ4oPaqP21GC5ZKmCQHJ/aY0FwQCA3MQ0X4oTu+qssuFehlh2oJ6Gg6CTclKTWOKT7eFj6AhNNcvx5W5lHczL7F2+x7i+JyM8FhqkiQ/az0m0VLpymkBZVL9UJuVhsV1pVjCUa15dzl+5I7pkbawfBIF/iJ9K29RlI6XKmWk2yotTooUi1kuHbC9J/iA7XOa4hQuRujaicwwwf60gkUGdUMnwhNtDi8mdh9VyGZgvEChUTDeRRnCPfYZnM/8ze9RHF409vXUtDGajgqz+idAHq8d/m/vnxVUly1ESQ4wn/ghPAJfbPxaTOqZ4p19F4KFZRypGi5FfJ/4wm+wyapRzPnQUn6TCzUHlGDSiDh1lgAhykeNlwiPdbilicoKPgMpUPmUIeaaPitUhxeenZNFWhGOOznLQlO+H18eH1z1/jp87AW4jPIU6UkP8VJ8dKM0+YsLQ51AnF59m1A8iDB+rqlHYZllKrVUnTQ0UBxSD7PUa2RaztUS2rU3jEYKlK6oAVIUWRgCuiq+8lChnOBThYnz3K1zSvbDaK4r1mybj9ovE2xynBgWWsLBD8i/IYx4p9+ObTVamJ69Wyiw713RpohNnl0p014CKxs8UBufuEo6FuzVgzgh5dN8kAIG3KJVwXb0dT0gNTelOKRkdESx+bfHuW3Rvj1YTiQTihuocQl+OkHZVTFVmKWfurxd/mTOZcYeeUtiuNddGw5fiEj8MGy+z1ed+v49PluF2Nrq3FzeDTg4/gilgrkW9OjyTCZdOF7koTFdhpKfv2x1OoX4orZ4xTA6rIWY1nogVBYGSTzeXD5UQ3XYhMSmyxxcJmaOloU8c4My00X1NIRCNdmzbuRstiGjOfbkXZHoRMDAumEVRbWrL0fL1zY6TGKgzS7ufndqwLZyoNViIwQ/PymAcM5t+6eT49asq8YHXKlPwVr3Gnj5LRJvYGw+VHS0QXJ8Qr7rCGlu4N5wobH32TFSeka9NxieO0C0KYabHs50leoOUc6isuUEvfnEnSSFEJNyqECbzl1AC9rpiRmuDKMtklrhOKATjiYkWg4a/MLGyqeozjWC6X5yaJYE9Qt8hw0gu+CgbJ7c9prqU0oiv1hjefMGdszt/eZs3DZ1F/CH8gUdA4VeAoqKaZRgW328lwl3q7WaDsFH7lLg3yb4dQIBGv1OBxTscnW6VKdYVOJCcWTr8a3Zii8Q+8cyVG6iD6bKBOKM3snSLluXZv4iHesUJanlLVONLTe+yZRHISemENGrKCGFjWWYIOf3xGC35xfavxGxd7xf/5lnSMFZgFjnNFfAi+02zcc26xyVKTYcN4jhc8p5lTzDBwcmbkxUqre0VK3itFKiKL4+LiJUJRSKLEErTtgHBNVWYs1MfGqMjvg4D/WJ806IMErTWvxBSguL96b2YMUh7KWmd5xyZ8ask1lvN7eqarB706PiloAqHd8is2W7z/P7VCr+4lQgfNtCiFA0+2mlbNlo2k7FC8OTKFR1SZGjNYWUrY73oD5QOlPlbQsEXyCNbwZmLnkkD9p3JY/pZQR2zYD0Q2n7WjwQ6BQ/fOzFVODxvnS3SiKQyD/h5p/BhsD2S6j7SN8E7Uun7fGBFc3AOfOBj5zNna//GjPWUOQ4TXG4XYzVOmD4SqqMc5YRMAGxSPVsOlUCTEq4mulmEb6G08UaYlqfqyjeIfqRhFLxKmbjh+tijGTH6YYkMgP2Cn08RkfnH8Y6EKnRag0NXyAn+KgpxZvQOFBioNYhjMqW6RgeMiuIZePromT8O78SHMx9y6vVX5vbW3d/C1HvQyUDfBRXDanGUKVHDXwAw5uLIrnhvNscdQumUzxTGrURGpTSKqnWlqZWHKonaCaHwdrWnQTyX1DS02sxM3N6cqJlNGdQiYOkK+bfUjgJh0ZyrHLVJ4uNlTsU1wjIUJ/sfjcQi9SHNwqmOMWelzCL3WWEYEV9uENUeHXxy11X2C0bMHMlK0tcKw06xX7XhU4b/LsHmKb5tNmZUR5mBmkIJ/E93223xf54mZTXDUrGOOSDCGnZMXYOkvKjNOwUJ6yU7IJyrED1zaaKfjVNFSfAyQnTUcLKVR5/W1Ll7Mgx+nu4ja1+ISA+1fQ+Pb/3SyKqxy3sCqwaqwzkjGxFX5NCH5z2SIrx8fOxtauyu9DKBrBBtCslwP1K5rPgGPJ5izCQLrbpygul9luQ6n2OtswwgrXZKdIIcJICJhRjtZAamL44L9SOSgqxQlJ41QUgrZToNNuwpBkFYCDkBbZlM1PHfywvsUhNKY1UFxiN+2kNkuot39ydX//4fHxCUYbPp0tykZvUhw4buUAgYOUKQAMxtoNGCSN05667t6pRvCb0+OWuhOUf7VdOwcuFa5YA6vbEaY45ZdhKT71o8w++/pvRnbMLsOcAs8hKHgqBh8MT4rz8JNtjtBHtdjkwOjuCKZG1NmhuWPMcA9kMMMnPvWyQjdGIlWBLV3xJd17GR8E6FlW9K0Edh+cXL1/VOd2bqtDKN59OFmwFsubFCd6nJ3eA/5eWkRgpGzBrNnnYzWvtnV4BwTH/+GSFElp1xzU7WZ5SekEV+s3KPA1PZOGZHHtc5EoM2Uc3k2z1Lg5/DJlJH6BUJUWks7uUVsLGf46LomAE6zhsQnW9KY4giblCYrhtfrUyC/SI1PxzRkmDZ1qzRQPphTrujZy8w5uP354ejcm93RQ1tPVQgFOr1IcvLlKOM3och1KmLJ4wCgBI+VOU+HgV4HRs3fnxGiZfMwXH9rN1AuECozxOjOWi1/a9OODrVbF1Dxfju9ZHDjrs3IGEGLYQaECUahmioMpPqU45RYHV6NGcfqxyegpjqA3nTHFJJAJP0yffBKLMv5uWoFNIN9k+prZUAnWElZ1bUDvi6uzRzO9NY5/3F+AkJ6lOLxgXwvmRsD45UyfVoiRghn+fElUOPAdbJa762M6DzFfCttMHWc5iGeu1qTRgOJhc+KJZcMYfIqb4VTBRC2E6G9obxqz706KKc3pykZ0fDFdINYwQmX6sZwaKjAoqQ99avVfxAzvTF3eEIuijgAx9ZiEeuMGnCyKs5pxqT+JT5bvmOzWOP7ubAGOe5fixBBUTB1WJZMph+TLBjZSGteqp1DnVzFN5pCjdZvhH4b7bPZiGS1UpCCjXQWoe+YpA396ZK3GTTYFQKvcMBXUSZKubAnc4nSWiEZxmW55odaCEMCkloSxi2cgFH7Vd8jFpniOfj1oCYiTjuMmjwoWLJvi+CdvP7yz5vfCHPcwxUnzggrVYgkavRpMOYSKhzojBatwCG42ng975tXDxMCYzQhnqMZH8bY5qRROm4xpCJE+IzmP8OuhY03xuLnHUFDLajd1Z8GGve5pSSp0UY/W8Y0UEdHkHyVJSXC7s6NQzfSlUOFV728B7xD1hEz6oE84bvKLs+PGcOcOPr7M5PeitoqXKQ707ZSMzbihZiSpbyfva52qRgoZ39a6BBXewHxn1UpglfJgN1Elw0Vxctqkw5aBWJcRPoJADdNUkTKFHctGaL7OnqlAMqO5TUzOnICueQs+gNQpXSvFdoiWAK847YfMJUrRcrm/k6iEqeYFUjbxaggVmG2zYGpiZo85js1NY6qhKUVFZdn+ydnLu3kEBzx95M0bd5Li867F/1NkcqbBzgykDcOhwDlIGE48KXLvlKhwho2iIVmyWxzKSXGIzFPvB+imwKpyBj8Fs8M9eIytMuCL/TBtivtDCbVRgMm8h0CSrqqHdqgEU2p1MmJ0nwvmwpWKUinU6O4cUrZQMoYjTDVMkq5oWWv4Q7xYxkxeQ+SH3Hb54Pbi3h7BsR5/ueLkuKNa3Gqa+xzMXBKEvHWK15htjBl+DuHL52P4aPEYgj+Nm9OeZcGyqU7REpwUL5o7uUH4np1KExkw+zcGMuEdC8chsNgU+MlpcRrwbBi5ltOdNmW66l8K1YgIITTP8F8G0+l0KBSkR91lKxTDzU+WMTQPehzrnUjUmIaFjZnph8ABfnsx+4xp5vgFH8edpHg7Xp6BeNMKybyKtoqIHsWIMatDyipRnYR618Dw6yNYKjFSZqlwHykNsxn8yXAdNxm5fsBY9iWQVV+GQE7pWDgbYJwnzcXxPE9I0dX/OJw2ddq0aprsqjqLUJHpope0SbVG5BIjOqHBfPyYpqGrvwy2Cp1pGNAFN5Hv9uOHFx5+Ezze8sWdHaR4vvqXQzKxnYFhvZtIJCoGJAhKe6UdjGoV/0+1j1GtRuH/RTVUDY4tPcVVhu/enZOTZevwDhsps1S4j1FtbgVLfrKvy+gvAUrNIkBq1V0Hv+l32A1cEKON1qQjFd3VHE6bU+d1ccfsMyT93uC0aa8/ohSMJaqmBmEoT2UwBsNVKjaKOR4xtkPHB4H6mOJo/+KRl94E70/s3hjyM85RHMnNUiVG5rHbRGqKmhlhFTWD3aqjuMZwNWQv987xPzaeL61VuI9Hi/M5DUlTZfq60Dzf6vPQfIRx7pVy7KcCau9Nan/suSdHXcMPG1qFRkrU7KuJQ4Xx5mHLAjO8nzf7p/LGDEboUEqJrHXUokoioGmnRnG0f/XCT2+C+wMeZ5eDWhwVy/h1amOkuzZZfTLtKDiBn/wPBYO4J7Y4QqoOVxl+dI1tlIY52EMhb7PAH3xbHNFNZoEXiYNYfB46XTI8h1ZqnLCR/uw4iwZi+1R9vG72Cmq/Upl+U4fKjq0xeRYMx9+vpIw/m6BEhpVQLz8ynEkhfk8ciwgdfHxakOHbTzxHTicpTgpT2J2RbEGygOEz0IVDvbEtosMPIUQvHz/v7u6SNPGZ6/MxWrBarCWd4EjcZ/YAkma0jQOXP+t9YqHGIVvWnIM1Pm3SUUb8ppteBCWVlNEU96fUyZtg39uRRCZV6bcZDAeHO+VVNMede78qGUxDKNgmE8x9J/eLMhzjPYcad5Ti4KEtONB0b6bAa8Qvjhl+Dv7BU43hqj6f1ypPLtftDSUDinNkGrICP5DtZ23qQDvXlLk1BN4eqxQDxRM502fH7YxM6TFSTElOv9ukIj8wJCKPtCfDjsBTCRbDGRRnzRBq/dZYnkw2CKH6iw82vYRMNf5ysTaK+8BX4CbHtVxMzPBT6JKiMfwGM/zmcO5gUo7oJtwv2xRXT5sUAqHCrFxFaCOVY7RDy1bM30I+cwHZ1KsJIRij61mX/YW/StUfA8lIfiKrxsK8HqzDo22W6oBXopHiKXN+FUzJMiYahogpdnD1uMAxc4qnM/uWirMUJ0fO2tJjDGbKnDidUOsQ295bY4aDK2X2QVNdXcT+tDNzEeOM6xahvwR1gUC2YuEBVL/D9hxClpLJvGEV9/sn2b6QHmMwd6Ww3mfYL2ToVFq18NJnY3icFEol2AwHihujXZjiedOHIAvLb6A4NjT3b5cxUgju7cfxHaY4OXgtNs/EJsClEkHEQ7hFvIUqw+e4UsY35dV251ueRirMwnqY6j1L1WCriRVqZb0+yDhPkxwqWg0FndMKno1p6KA4CtNJWHuqz1Bm9UChfoRuUWuUprGACZ89TIErTHGFbhVX/f+uljFSVLxfH8XJC3i50WtzpE6SVC6B4dc938RKubRhVYApbncOCUuZztgzqyIzpVg5VMbf6jCMYZY1jpIjs+8jpsQ152l+J0Vlgehzuk1N93NqKyyg+KyRFeRKNRgFbhFwxRQ3fp9J8bIxQyaQLvzP//G0lJGiUtz+edN5ivvy/TAzk84hSKnu4PgZM/z5aMLwZ1sN77CdYu6YZvEjGZ50cXNtAMlQYU56N3yNJSnGjApz+TGJbaqvGXwQKBmcd4GcbpaOqdsVaS5OHDGyuS8LhTQ0YbZs/UtRHEwsBsXpTlzpws/LGinrpjhJ83ZkSqwFsDVX+ofGhOHgS7mxx3Bf/MFuJ5VJX0q7OzafNjNzO39ikjAkBWrcGCvHxt+e6VGY1KCZumQFUsr02UJlqlEKXJ68n+aPD0uHd8rT3r+m4CZNcVY8GBX7xgwZbF/94Wl5hq/VUCGHrwQzk84ZYDVU/9LYuiG5hRwMh6lNXdulmzme06bMaDirz/az/iLz4JItUOmmEXOaoZRJRCdFB3uUZ0NP8U6Xrk3WwuxzKY4ZHp/2/kUy/WqhbHFmN1/S/MXoWdwEimuZdO5xPJv4/P0dKWI7uuFgOGrWw3Y7dwaZ7mmrKxcH5sr+gD7+Yi2pKOPIR2wQ3VdJy0JaCGlFq5+gI6vYQkroBgYOumk6CUudSDiH4pLK8Ml15CZldtEeFSh6pikOvnND4EnCFP+jExRfo0dFvWa7X5hzklkCoMa/I0HNHon42DlpwqraI/tKPENlFM25MuO0KcVmFJpPJZVkJM3QYUJIszJdP/Y6Pm1Ci29jEtbUJmY1ld1TK3NmU1zKGhmOz7RUwg1Di5spjk1xY+AVr/v3DjD86SNHXM4FipNQiIsRoECo8FAexzfvLu3F2SHsYzOyqWaocJjijMCPxPIvsL7LmBktZbQQu/YZ5mlz0nORrho1JJAhuZ8wtuyUYgm1qeYsiktBzHB9HAe/qH6g7C46uskyVOAJM0algqnXf1me4WuMbk63Fl9gTKxtSDkFH5lap43d3cahTR2O4g82U0fJDyTmtvvWbdZUyO43NOuZ+eXiwNwea9IFYnx9c2ApOPF90x7LgL44Ep8/ClTLzlhC88Sw08XVq+cKVUP5oFwuDanDJDRLN1CccdyEMVjUlJXan37nAMU/rC1HZXpZiAC5x/FgalhNHjbU+Ka9bTZfOUZW8nnFTWW6fiBawhbFweHIqBdK6UpsSGyTXmGo0tc+YIr8pCvTVBHU3jFGfiY+w1lOQxPD8XukRieVYYpTPSZMTkPki9M5YKGwExTnMcVdK0+Gg5R7ESCsDOp//xuI/thleLJUt58DyWWnEGOY1UfentcRugaaU7j0ThVWn3opVBlof4eaH/3OAtmubuJgkhpjiCWnDZOaEfrBpo6R4Un8GOa6VLiX5IvrL20yzVCxTyVMBNKJn1+WV+LYTvEAxX35KruXgiPA2mD43aet57mZV9omMcN5ZkTEFPt2is/HKi2Atp82TSjoOWhW4zvTQQvtqumFGMiOV2hKAQvEuro3QJmuTU7vdcZ9IOgeWrq1d2iGZyVTxwyguCH9JJWgGqSgdolq/oIv7YDPcPvxhOP2uEVxEg/hGY3OCcLx7+3NRcdn/9HQVva/dm2uAeFQ8WNuI4dPdcn531UvAJMaaI5PrXEIEJlOm1Jt3CEfUsCMbQdjRrc4lYSVG3fcRb6ylekW29ONecD7A2UVyNB9j+jCNilWMT7VyNehe+I65FDhsVNc7KOiRoDmE2pBSKHa8HPexgIRipRfeXQ4Z8tOaIZjmjEHDhW7CQBI7ptsebDG4+PQDiO2KRXGvYBM3Uz0kR/waGSMTrtUQvO5WybTYh5Ow6sISrngdSwFC9SOIEneQHG6cTh+d1L99bCZ5IRD5emKh5juUVytAXIvIUsKpeqlsmUKxXR/7cFDl68WiWt2MvhETBm64Jy2WzSEIDxj7VQh/SvoFWamp83IwJhKC6e+6dqqxtFgUFEyoXizxC6JmGp6sDcHJXLYNfcgpWu9IU9W/xCgYpQORDjkUOFxGbpKcTAi5+WyLQMYOfNQbc+s1sRKKD4a2h06rl03lOCaKwstTswMtX8NhKIMik8SDkmmrunylXFTIdpnaCg2AoeK0WeYqVXHrz7LwrZp51pUbFYVbS5tIPdgPG+aj8GGmghsCNWpwminHCqP3qE4So5s96xfAJKUrdVfB02fxToRELz6oKT41gCHTZ5GHdgkNV8jl5gf2xwvs1hlSQkbxGppZqRvbtESU8bvGZPPMFTQteJpUy07J63FfcQVwz6ggJXUIdPAsAovjFt3BtJ1o/lmMpEM4x0B+gAAEEhJREFUc5ERijMGFmSdcKhAM337t8fdnoZQVWjKrnASUiaWGGKSy6a1kv/Qjvcf6uEcX8F0YNKfxOYeqaR/si582tSd+eagw5j7DWzQBhQzBv8FJmNTTH+GkZhTn2GeGnQCGZRF3cPBvjlQCRFtRtqdHeiaOpEL1TnXFA/Ahj7k5Wgol0wOG/zeVVZ+2pzfh5DjWoyrQwTIiktOQILKq+FrNZo0LbwY7+8AwXkDUIFY136SIXmMGadNSZcKNUfAcvyV1b5onM4LsVOzQ2XSuBw/YcaW/AEDxZt1yqWhOxKaehLqPhZKVZRRSallp50NoScwPX6O6uMIoxBV9Y/a/QfzCQJMcSdOmx/5+vu4SnEQY8VcO+4kMMlj4e7wddQfNNuRIukcHMnHB9XSw7BSy3EnPErBAtfETYiDmxID9Nl+SO6UZgATid2nVmvkwnJfS/7CuN0VGSml/xs0KNJRfJgz+Qx1DT0tI/hSMJ0Kh2Mhw4iIWD1ppDiMgjN+LR1WSv3BYNAv1RkeY6iHcMBOebniYqXbFEf5UcFuRfCCkKRgKFaANnMPE+B/6YZzIZ6p9+OrxeqzqorNO4yYKseMGSrY1B4WZoEdPRhbzSyHiqQL39NDUALZii64WR4aCxIyqeokPEOmYFlpAEmSMkFj0WcgNzT2P2cVOwVjFejvp4TTZvNQknLK7x3IpOVpouJzneJw6lDMQ3+dBrA8G6uFCxVFUSqVQjgVS2f8rDHF8xDIJEb2K9oAeSoNg6xH12gIU7yyQPI8fqmrFGedNnP1+OTqHcog1iXxQnNvo1tcd9pUz5szFiDRU0TTlT5djWQeWS5l0tlsNuRnjE3Fx9iHf16e4Zx2iusUJ/FpjsjiwiA95NQ+cto/LHQZKTVhj83txRWTKQ4ej4n7jFB8VuM7i4WobER0T05y+dRwYgaZyjGMP10wusV1p02f2tHZvpgCwcIrfd5kxEdJZ1vm29Mpl+EtHyldpzj4dTly/JbGgtQefzvd5fKJgyluTjPEHNSdNhfU4qEwsBGxJqAEpmOyoP9EkNLiU4q3X41GlLHYAmJzHBGDYCD1QHWejVds9NOa/Lgz/pTtD5yjUNynuNqgZ3UcXwYwY81+dgrZXLEaNp82g7WSPsK4EMXVLAJo6GNK0spMEnVJRquRxbr4C8pTzb+Chp5s8Pjw+LvI+Fv93ln+zBk7CjniT3l3z9tpcwUUJ7kKb4LjgVg9ymnoRUph8+BEqiqhssCxV/OLI1/HVCMYSCvjwbGkn6GRxbXSNEWl+YOxX1UwZsh/BEOGx1JJV6pGYzwS5bix+BXyswOHzRdOO2UVFIf5jg90KNeTwNwZ2c+/UpFnpRkafNMLaXH8Vi+Be550c6OXmRvGJxSnZnSThnFTuQ+psrKYsVwN2WlrOP26FKaCP4xho9bfztQeHPGn8I5sm0txRzguD7ocolwXpExY4ci/0nbGMMKkrLI0xbUcFVJ9bwrfDyfhe5NDJRjuj20k5KPK78FnmDfU9tuffUS+X3vIL26pOBO8f+KphlBXuQqKQ/kHw+/gMQT8tdldCJkbo2ojCfRHvgUNlXEqFMmVMjlUumOmQT8PesDxNAlFrlKptJkaNaoEdcyVozMWVatTxW2MgiSr7zqkxPmC9+omV0Jx1C7xWH1rgZSrc5SzaRszTdIhV0qV8r6ltDi2U/bgccOmhLk02R8e6RwqVP2vLgsLyaMC7Ravzk6InYlAKEHZcaTvs82v5yoOKPEnrhEoY/KtiOMwn8HTelzKVrjmJavAprjJ6Y/t4erEobKYFp90SIZ6CFqJh7rTlD96pJQU0gedXsOWeYbj+0I3hJuBgClmYN9SAZ/48mGfl7ODBZolr4bi4Bmom89lHgK2DHby3GaeXGa86ANpg2tuIS0eUweiME+b6eE4T4x0mzKyWDf7EhWHNVMnLHpUif2W64E0lWro85mauFjuJ5Mqda4el6X42ZxRTuybtDKOF1caAeIF1jKv9GBJG5tinjYD+tPmQloclLg64DhfNaWw6E+bpgH3Boq3h1RuQXaPHlWCUFKhqs+s1uSv1U0t16Ghoo0GTOCtHBT3Py5piz/x5V+Nd2gL/Bdm/BTHiIaVQwrVFJsV84Y9yf0EI6HO0OttAS0ONQlaVzaGITAtTYZUWiqfVZ9La4r8QFEmfZ5GvoFix9bAa+oyjipwGJirxiV/LgGunIOz5TjuJsWd8Y43beqL1QNrTbs9IYx7iphz7fxQ+9lcRosDIwZa4SZU31PZUP7pnBPiMzRSXNctFHXqRp/hpE2QYQ/Fvg2PLgwTZHVch9jTvCdE8mcLJMERnXxYhuHbT1wFbeMVrpTj5a43I0DAcI75bDowJsqq9ZG+xbW4JGFG5NWiNuj1Rv852J0MjjWPpwhkJ1oc+agfxjStmtMTEGqP5pbYYltaiTIP41BaOvvbmOHhkToG0XexjDm+/cJV0DbZ3ypNFTnadbEp86KQgukFGQ6tSLLmTFp9+J5fi0vQ2FuzJ1inuUCoPpi0gGjvmEYjTykuv4bpFg8MiqsltumZmcfWDCeNhGb1y5GkTC48TlJH+2fLqHF+n7iPg+IOmeN97x05pWCuUFrESlFPm+a7GwgZpghzanHQeROLGYoOTL3eslPXnak2E1oUjc8BqPhQs0NxMCExx2e8X/FJpRK1KoUi/XIsN0gqDydlGAhdPC48BeXpfhElzkFxZ0yV9oiv4YP7kDKxwsh2tTy1n3aVFfgx+Az5tLgkBWPh6uRMyE4Wn5426dGXJOo0PgeYHCqYqeyu6dAurGBZAwgPnTKwLvZTB5gxvwwqvLYzyE9nTWA1vuhU8A/7iw0tWTHHsfHqqSMnUTJ900RUu0gqNcZ0WG0k2njPHFpc8ut1HulhTZ82pWkjLGb1f2pvQnG6NtlvRXESwqnEgixjRfJjHQBTraxvKmr3WVNB8NUy6VqiWp5OU4G54It6VbYfOZMrJstbMcdJDZBn9Dg2UsJ7VoMlbaDJHHKYMhDJPsWxzouFK4O8Lr2ls5ejy8syyqS8jESejCyGCS5jilPzAKHjbN9CGWOLug8NJUxlarAkrANmlokgOVmFdiuS/nv4X0KxGn448oZwDfEcLqjHrxaarsYH/h8w/2IkqvB1X3MPRGfuzO0ZZ70XXxyfNiUa1DxDleJ2kMnWKjsGnReBqcnG42QgWx9MH4FoIm1cgB+8OdpfIc/Q8MeQ9aRF5GsPSmHgqR7BdKyWGHXac95ySM5HE6n0ZJekgjOXCld2BskiJd3FOb7NW9Gm/d7KKQ4t47OLFA47DUzwGFbhSa46NuNeitFCyB+k4E8bB64BxTMS/SkT/NhqLewMDDoPWnTEckZka7rTZqRKLyAzSY9BqN9NG/7oT88YJkqauyVquVBG+04mg/kdxnZGnmYp48u+dmcnnEpn8DYymRCmN/5mqV9OFk2zDIHji44H5+uCpf3aGjhuOQfIlqZzDP5QDtuJ8YVVOGyl/aqkzKh1jcOoitU641Pmr+3tdCidh41cZY9GYtoYGkVKSo26jDK2khAaDak/1pjRm/HFCE8LYe07tVptb28nGs/bSguBB6S/s1cj3wvv7ezsDMrNNrsTH0In9wva42f8KRZroDhp78ScAxQMrRJA8M7snp9zd9IulXYYGBmOr0iOvrI+RaPaMavLYrLJQFGnxU2XKQ3GfbJQf2T662BWLiXCBkd5csVqf9DMR2S7dx3Jkeagqn6x00yq37Qy/A/OXhZxrGxzV/ysh+I+X6RTYZjjUrYWXh0Khb6dN/Bs8clJJvJFw6d8bfbHKLSLNgWss9Xldt6EyLT+fsYfrS4NV1Q30W4XrfqhWi0rQn6xHSnOYQvm+NX7p+1tXpbzTYdQf2k9HMcmZsJsjkv4HRtdHcpteWFHylwB2vuUDenO+djsyyxyB7k+bP3duR/dP7g6+/DES3LnS5P5JWTvd33JqtkcxxRvRlaH4tIE91lK0ObHnJesM1jFchDa3z+5uucl+ZXTDSZc4zhrDhCZQrBCOLERgcWB74C8f/WeT43znjfXRw1U7Cj0FDLToA2BDQcm0/4BV5kE10hZ7SfWxHGEIgP6yCko/g0Ck/wjj2/lic8YX5DhzqhxcwRIUPybBDgQ7RvknEURi1LcqSPnjrEFh6D4N4r9i/d2Ob796HBrcXc5LscrhgiQoPi3CUyng3ubHN/mPG4uTnGH6iOM5rig+LcKbJDb4zhv6GcJhjtkjkeiFV2qqKD4NwvM8TMbHN/mm5q8HMXdMMcFxb9h2CvqdLyzuPscl+OlqTkuKP4tww7HuauTl6O4YxGgiTkuKP5NY66twp9muCTDHYsAJcbmuKD4tw185pwVBNp+5C6wXZriznA8P0poHZsExb9xzPSrbG9zV7Utz3CHypXjJe3IKSj+rQMdvLem+Jn71RDuUJyM8FVL8gXFv3UgdGLF8e3HtTDcsQiQeuQUFP/mgXy37GZZ2+/4e9J6iOLQaCYrKC7gA3P8ilmcv4CZ4hDFHeK4GgESFBewMMe508TJpbxD8XEESFBcANS4eebVSnoEuczxYgcfOQOC4gKY47cf3xs7UGy/cI/aJFdyDE5sC0ryc4LiAj612u1C30po++lqoUpy5yjuDMeT1XBIUFwAACSfDndblOEeozg0ZS7VaoLiAiqQfDGZCvRxkdEQPkcp7lRCVqIiKC6gYTIViL8B1uQSnuN4JDqsC4oLaEDqkM7tp4tFWzo5SnFnOJ6vPgiKC4yBbsFU2X6/gEdcu4D3KI6aFlM6BL5FIB9R44ta4k5T3KkucBEnriOwGUDYGt9+vF249aTDFHeI405cRWBDgA7ev9teaNKm9n1PctyJiwhsCKBCYgk7xXmKC3oKOAvku1/Cn+ICwwXHBZwF8p09LewUd4figuMCTgL5Tq4u9hf/uqC4gOexFKkExQXeAJYapyc4LrDZcIfiguMCnoFLFBccF/AK3KL4xnF883b0rUBQ3A48tUPHl8Bzwbd3yx3g8tvaMBdclM43hA2+hxuxCQEHsComrJ4dm7AHASewGiasgx0bsQkBB7ASJqyFHRuxCQEnsAoqrIMdG7EJAWewCjKsgRybsQsBR7ACMqyDGxuyDQEH4D4X1kONTdmHwPJwnQtrYsbGbERgabjNhTURY3N2IrA03CbDmoixOTsRWBouk2FNtNikvQgsC5fZsB5abNJeBJaGy3RYDys2aS8Cy8JVNqyNFpu0F4El4SYZ1siKjdqMwHJwkQzrJMVm7UZgKbhHhrVyYsO2I7AEXOPCmimxafsRWAJukWHNjNi4DQksAZfYsF5CbN6OBJaBS3xYKyE2bkMCy8AVOqybERu3IYEl4AYb1s+IjduQwOJwgQweIMTGbUhgcThPBk8wYuM2JLA4HCeDNxixafsRWBwOc8EzlNiw7QgsDkep4ClObNRmBJaAY0zwHil8HLNjLT+47k0ILA9HSC1oIeBhCIYLbDwEwwU2HYLfAt8KBLUFBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAR0+P8B1AeJqP8tgZgAAAAASUVORK5CYII=" alt="Logo SISMED" class="logo-img">
+                </div>
+                <div class="logo-box">
+                    <img src="data:image/png;base64,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" alt="Logo Institucional" class="logo-img">
+                </div>
+                <div class="title-container">
+                    <h1><i class="fa-solid fa-chart-line"></i> Dashboard Ejecutivo Valorizado</h1>
+                    <p>Monitoreo por Microred, EESS, Mes y Año con Paginación Completa de Registros</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <input type="file" id="excelFileInput" accept=".xlsx, .xls" style="display: none;">
+                <button class="file-upload-btn" onclick="document.getElementById('excelFileInput').click()">
+                    <i class="fa-solid fa-file-excel"></i> Cargar Otro Excel
+                </button>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filters-panel">
+            <div class="filter-group">
+                <label><i class="fa-solid fa-network-wired"></i> Microred</label>
+                <select id="filterMicrored" onchange="onMicroredChange()">
+                    <option value="ALL">Todas las Microredes</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label><i class="fa-solid fa-hospital"></i> Establecimiento</label>
+                <select id="filterEESS" onchange="applyFilters()">
+                    <option value="ALL">Todos los Establecimientos</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label><i class="fa-regular fa-calendar"></i> Año</label>
+                <select id="filterAnio" onchange="applyFilters()">
+                    <option value="ALL">Todos los Años</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label><i class="fa-regular fa-calendar-days"></i> Mes</label>
+                <select id="filterMes" onchange="applyFilters()">
+                    <option value="ALL">Todos los Meses</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- KPIs INDEPENDIENTES -->
+        <div class="kpi-grid">
+            <div class="kpi-card sis">
+                <div class="kpi-title">VALORIZADO SIS <i class="fa-solid fa-hand-holding-medical"></i></div>
+                <div class="kpi-value" id="kpiSIS">S/ 0.00</div>
+                <div class="kpi-subtext" id="kpiRecetasSIS">0 Recetas SIS</div>
+            </div>
+            <div class="kpi-card intervencion">
+                <div class="kpi-title">INTERVENCIÓN SANITARIA <i class="fa-solid fa-kit-medical"></i></div>
+                <div class="kpi-value" id="kpiIntervencion">S/ 0.00</div>
+                <div class="kpi-subtext" id="kpiRecetasIntervencion">0 Recetas Intervención</div>
+            </div>
+            <div class="kpi-card ventas">
+                <div class="kpi-title">VENTAS DIRECTAS <i class="fa-solid fa-cash-register"></i></div>
+                <div class="kpi-value" id="kpiVentas">S/ 0.00</div>
+                <div class="kpi-subtext" id="kpiRecetasVentas">0 Recetas Ventas</div>
+            </div>
+            <div class="kpi-card exo">
+                <div class="kpi-title">EXONERADOS <i class="fa-solid fa-heart-circle-check"></i></div>
+                <div class="kpi-value" id="kpiExo">S/ 0.00</div>
+                <div class="kpi-subtext" id="kpiRecetasExo">0 Recetas Exo.</div>
+            </div>
+            <div class="kpi-card soat">
+                <div class="kpi-title">SOAT <i class="fa-solid fa-car-burst"></i></div>
+                <div class="kpi-value" id="kpiSoat">S/ 0.00</div>
+                <div class="kpi-subtext" id="kpiRecetasSoat">0 Recetas SOAT</div>
+            </div>
+            <div class="kpi-card dn">
+                <div class="kpi-title">DEFENSA NACIONAL (DN) <i class="fa-solid fa-shield-halved"></i></div>
+                <div class="kpi-value" id="kpiDN">S/ 0.00</div>
+                <div class="kpi-subtext" id="kpiRecetasDN">0 Recetas DN</div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-header"><i class="fa-solid fa-chart-column"></i> Top 10 EESS por Componente Valorizado</div>
+                <div class="chart-wrapper">
+                    <canvas id="barChartEESS"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-header"><i class="fa-solid fa-chart-pie"></i> Proporción Independiente</div>
+                <div class="chart-wrapper">
+                    <canvas id="doughnutChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla con Paginación -->
+        <div class="table-card">
+            <div class="table-header-container">
+                <div class="chart-header" style="margin-bottom: 0;"><i class="fa-solid fa-table"></i> Detalle por Establecimiento, Microred y Periodo</div>
+                <div class="page-size-selector">
+                    <label style="font-size: 0.8rem; color: var(--text-muted);">Mostrar:</label>
+                    <select id="pageSizeSelect" onchange="onPageSizeChange()">
+                        <option value="15">15 registros</option>
+                        <option value="25">25 registros</option>
+                        <option value="50" selected>50 registros</option>
+                        <option value="100">100 registros</option>
+                        <option value="ALL">Todos los registros</option>
+                    </select>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Microred</th>
+                        <th>Establecimiento</th>
+                        <th>Periodo</th>
+                        <th>Valor SIS (S/)</th>
+                        <th>Rec. SIS</th>
+                        <th>Valor Intervención (S/)</th>
+                        <th>Rec. Interv.</th>
+                        <th>Valor Ventas (S/)</th>
+                        <th>Rec. Ventas</th>
+                        <th>Exonerados (S/)</th>
+                        <th>Rec. Exo.</th>
+                        <th>SOAT (S/)</th>
+                        <th>Rec. SOAT</th>
+                        <th>DN (S/)</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+
+            <!-- Paginación -->
+            <div class="pagination-container">
+                <div id="paginationSummary">Mostrando 0 - 0 de 0 registros</div>
+                <div class="pagination-controls">
+                    <button class="page-btn" id="btnFirst" onclick="goToPage(1)"><i class="fa-solid fa-angles-left"></i></button>
+                    <button class="page-btn" id="btnPrev" onclick="goToPage(currentPage - 1)"><i class="fa-solid fa-chevron-left"></i></button>
+                    <span class="page-info">Página <span id="lblCurrentPage">1</span> de <span id="lblTotalPages">1</span></span>
+                    <button class="page-btn" id="btnNext" onclick="goToPage(currentPage + 1)"><i class="fa-solid fa-chevron-right"></i></button>
+                    <button class="page-btn" id="btnLast" onclick="goToPage(totalPages)"><i class="fa-solid fa-angles-right"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER DE COPYRIGHT MINIMALISTA -->
+    <footer class="dashboard-footer">
+        <div class="footer-brand">
+            <i class="fa-solid fa-shield-halved"></i> &copy; 2026 <span>AVengineers Agency</span>. Todos los derechos reservados.
+        </div>
+        <div class="footer-author">
+            Desarrollado por Vasquez Carrillo Esteban
+        </div>
+    </footer>
+
+    <script>
+        let rawData = [{"eess": "P.S. COCHABAMBA", "microred": "YAUTAN", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 255.0, "recetas_intervencion": 18.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1638.57, "intervencion": 1266.99, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. FORTALEZA", "microred": "YAUTAN", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 169.0, "recetas_intervencion": 6.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2477.93, "intervencion": 1515.92, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. PUMA PUCLLANAN", "microred": "YAUTAN", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 7.0, "recetas_intervencion": 3.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1051.62, "intervencion": 383.56, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. SAN JACINTO", "microred": "SAN JACINTO", "periodo": "202601", "receta_ventas": 8.0, "recetas_sis": 1089.0, "recetas_intervencion": 59.0, "rec_dn": 0, "rec_exo": 1.0, "rec_soat": 0, "ventas": 433.1, "sis": 19614.75, "intervencion": 58287.29, "dn": 0, "exo": 11.4, "soat": 0}, {"eess": "C.S. BUENAVISTA", "microred": "CASMA", "periodo": "202601", "receta_ventas": 1.0, "recetas_sis": 256.0, "recetas_intervencion": 20.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 146.2, "sis": 15741.03, "intervencion": 5547.92, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. MALVAS", "microred": "HUARMEY", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 95.0, "recetas_intervencion": 38.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 568.58, "intervencion": 417.71, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CACHIPAMPA", "microred": "YAUTAN", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 345.0, "recetas_intervencion": 15.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2323.36, "intervencion": 3172.53, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COLCAP", "microred": "SAN JACINTO", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 249.0, "recetas_intervencion": 4.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2210.97, "intervencion": 1409.69, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. MOLINO", "microred": "HUARMEY", "periodo": "202601", "receta_ventas": 2.0, "recetas_sis": 8.0, "recetas_intervencion": 9.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 38.6, "sis": 856.77, "intervencion": 1284.3, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUANCHAY  HZ", "microred": "HUARMEY", "periodo": "202601", "receta_ventas": 1.0, "recetas_sis": 101.0, "recetas_intervencion": 34.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 28.4, "sis": 866.89, "intervencion": 824.38, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. PAMPACANCHA", "microred": "QUILLO", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 175.0, "recetas_intervencion": 22.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1193.99, "intervencion": 6496.02, "dn": 0, "exo": 0, "soat": 0}, {"eess": "HOSP CASMA - Farmacia", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202601", "receta_ventas": 42.0, "recetas_sis": 4306.0, "recetas_intervencion": 127.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 2.0, "ventas": 1241.0, "sis": 59051.8, "intervencion": 309518.64, "dn": 0, "exo": 0, "soat": 12.55}, {"eess": "P.S. CHACCHAN", "microred": "YAUTAN", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 49.0, "recetas_intervencion": 3.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1246.5, "intervencion": 1311.88, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. QUILLO", "microred": "QUILLO", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 976.0, "recetas_intervencion": 29.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 92318.97, "intervencion": 15391.53, "dn": 0, "exo": 0, "soat": 0}, {"eess": "HOSP HUARMEY - Farmacia", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202601", "receta_ventas": 185.0, "recetas_sis": 452.0, "recetas_intervencion": 11.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 15.0, "ventas": 2030.5, "sis": 63970.18, "intervencion": 25014.28, "dn": 0, "exo": 0, "soat": 372.82}, {"eess": "C.S. BUENAVISTA", "microred": "CASMA", "periodo": "202602", "receta_ventas": 1.0, "recetas_sis": 41.0, "recetas_intervencion": 25.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 219.5, "sis": 6682.12, "intervencion": 4001.34, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. BUENAVISTA", "microred": "CASMA", "periodo": "202603", "receta_ventas": 1.0, "recetas_sis": 64.0, "recetas_intervencion": 87.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 180.0, "sis": 10755.42, "intervencion": 5509.07, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SAN MIGUEL", "microred": "HUARMEY", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 7.0, "recetas_intervencion": 2.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 959.3, "intervencion": 752.79, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COLCABAMBA", "microred": "YAUTAN", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 102.0, "recetas_intervencion": 8.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1173.44, "intervencion": 32.4, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. YAUTAN", "microred": "YAUTAN", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 790.0, "recetas_intervencion": 23.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 6591.38, "intervencion": 20486.0, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. BUENAVISTA", "microred": "CASMA", "periodo": "202604", "receta_ventas": 1.0, "recetas_sis": 372.0, "recetas_intervencion": 79.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 501.4, "sis": 11874.39, "intervencion": 7161.66, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. M. C. DEL ETERNO SOL", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 215.0, "recetas_intervencion": 0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 4242.55, "intervencion": 0, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. YUGOSLAVIA", "microred": "YUGOSLAVIA", "periodo": "202601", "receta_ventas": 9.0, "recetas_sis": 4010.0, "recetas_intervencion": 222.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 1190.2, "sis": 26150.95, "intervencion": 62707.85, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. QUIAN", "microred": "HUARMEY", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 111.0, "recetas_intervencion": 31.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1146.0, "intervencion": 485.14, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. VILLA MARIA", "microred": "YUGOSLAVIA", "periodo": "202601", "receta_ventas": 5.0, "recetas_sis": 665.0, "recetas_intervencion": 122.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 170.8, "sis": 8116.57, "intervencion": 15427.31, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SAMANCO", "microred": "YUGOSLAVIA", "periodo": "202601", "receta_ventas": 5.0, "recetas_sis": 443.0, "recetas_intervencion": 39.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 317.6, "sis": 3271.49, "intervencion": 2592.73, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SATELITE", "microred": "YUGOSLAVIA", "periodo": "202601", "receta_ventas": 4.0, "recetas_sis": 981.0, "recetas_intervencion": 50.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 38.3, "sis": 13662.16, "intervencion": 5814.49, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. 3 DE OCTUBRE", "microred": "YUGOSLAVIA", "periodo": "202601", "receta_ventas": 18.0, "recetas_sis": 756.0, "recetas_intervencion": 17.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 869.5, "sis": 14756.36, "intervencion": 7494.96, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. BUENAVISTA", "microred": "CASMA", "periodo": "202605", "receta_ventas": 1.0, "recetas_sis": 117.0, "recetas_intervencion": 72.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 253.0, "sis": 9334.79, "intervencion": 7052.06, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. NICOLAS DE GARATEA", "microred": "YUGOSLAVIA", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 1485.0, "recetas_intervencion": 593.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 12688.02, "intervencion": 38932.02, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. MENTAL COMUNITARIO NUEVO PUERTO", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 231.0, "recetas_intervencion": 2.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 5079.01, "intervencion": 5.76, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. BUENAVISTA", "microred": "CASMA", "periodo": "202606", "receta_ventas": 1.0, "recetas_sis": 253.0, "recetas_intervencion": 259.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 216.8, "sis": 9016.43, "intervencion": 6352.86, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. POCOS", "microred": "SAN JACINTO", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 83.0, "recetas_intervencion": 44.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1575.86, "intervencion": 2146.32, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUAYAN", "microred": "HUARMEY", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 13.0, "recetas_intervencion": 4.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2089.3, "intervencion": 1214.78, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. MORO", "microred": "SAN JACINTO", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 792.0, "recetas_intervencion": 6.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 19151.46, "intervencion": 8526.2, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LA VICTORIA", "microred": "HUARMEY", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 307.0, "recetas_intervencion": 58.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 25156.15, "intervencion": 9683.35, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CASA BLANCA", "microred": "CASMA", "periodo": "202601", "receta_ventas": 1.0, "recetas_sis": 57.0, "recetas_intervencion": 60.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 15.0, "sis": 599.98, "intervencion": 615.34, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUACHO", "microred": "QUILLO", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 610.0, "recetas_intervencion": 7.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 3492.25, "intervencion": 2361.93, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CASA BLANCA", "microred": "CASMA", "periodo": "202602", "receta_ventas": 1.0, "recetas_sis": 81.0, "recetas_intervencion": 63.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 16.3, "sis": 732.84, "intervencion": 603.55, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CASA BLANCA", "microred": "CASMA", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 66.0, "recetas_intervencion": 60.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 575.34, "intervencion": 696.38, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LAMPANIN", "microred": "SAN JACINTO", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 8.0, "recetas_intervencion": 7.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 396.88, "intervencion": 675.86, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. NEPEÑA", "microred": "SAN JACINTO", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 635.0, "recetas_intervencion": 6.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 10463.25, "intervencion": 2977.53, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CAPTUY", "microred": "SAN JACINTO", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 13.0, "recetas_intervencion": 3.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1343.49, "intervencion": 1128.29, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LOS CHIMUS", "microred": "YUGOSLAVIA", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 139.0, "recetas_intervencion": 13.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1596.62, "intervencion": 667.21, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CASA BLANCA", "microred": "CASMA", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 66.0, "recetas_intervencion": 52.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 677.56, "intervencion": 2329.17, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. JIMBE", "microred": "SAN JACINTO", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 64.0, "recetas_intervencion": 10.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 5251.59, "intervencion": 3462.07, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CHIPRE", "microred": "YAUTAN", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 95.0, "recetas_intervencion": 7.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 798.92, "intervencion": 54.66, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CASA BLANCA", "microred": "CASMA", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 84.0, "recetas_intervencion": 77.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 415.23, "intervencion": 1409.86, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. PUERTO HUARMEY", "microred": "HUARMEY", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 26.0, "recetas_intervencion": 18.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1457.62, "intervencion": 3232.07, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. PARIACOTO", "microred": "YAUTAN", "periodo": "202601", "receta_ventas": 6.0, "recetas_sis": 177.0, "recetas_intervencion": 20.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 191.6, "sis": 4790.81, "intervencion": 17130.46, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUAMBACHO", "microred": "YUGOSLAVIA", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 134.0, "recetas_intervencion": 3.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2161.97, "intervencion": 1411.7, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CASA BLANCA", "microred": "CASMA", "periodo": "202606", "receta_ventas": 1.0, "recetas_sis": 95.0, "recetas_intervencion": 60.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 9.3, "sis": 392.14, "intervencion": 1123.77, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. M. C. DEL ETERNO SOL", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 213.0, "recetas_intervencion": 0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 3946.64, "intervencion": 0, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. MENTAL COMUNITARIO NUEVO PUERTO", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 222.0, "recetas_intervencion": 4.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 4663.37, "intervencion": 15.76, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. MORO", "microred": "SAN JACINTO", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 747.0, "recetas_intervencion": 7.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 13568.52, "intervencion": 5316.41, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. NEPEÑA", "microred": "SAN JACINTO", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 567.0, "recetas_intervencion": 6.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 5729.01, "intervencion": 4771.02, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. PARIACOTO", "microred": "YAUTAN", "periodo": "202602", "receta_ventas": 5.0, "recetas_sis": 107.0, "recetas_intervencion": 11.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 156.9, "sis": 4613.0, "intervencion": 1694.83, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. QUILLO", "microred": "QUILLO", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 980.0, "recetas_intervencion": 20.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 10779.8, "intervencion": 6460.12, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. SAN JACINTO", "microred": "SAN JACINTO", "periodo": "202602", "receta_ventas": 8.0, "recetas_sis": 1238.0, "recetas_intervencion": 55.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 378.4, "sis": 16937.9, "intervencion": 10865.01, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. YAUTAN", "microred": "YAUTAN", "periodo": "202602", "receta_ventas": 4.0, "recetas_sis": 714.0, "recetas_intervencion": 14.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 443.0, "sis": 5503.49, "intervencion": 13497.01, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. YUGOSLAVIA", "microred": "YUGOSLAVIA", "periodo": "202602", "receta_ventas": 7.0, "recetas_sis": 4309.0, "recetas_intervencion": 269.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 1057.4, "sis": 28900.16, "intervencion": 65665.66, "dn": 0, "exo": 0, "soat": 0}, {"eess": "HOSP CASMA - Farmacia", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202602", "receta_ventas": 35.0, "recetas_sis": 4269.0, "recetas_intervencion": 108.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 10.0, "ventas": 1186.2, "sis": 62831.06, "intervencion": 8368.69, "dn": 21.79, "exo": 0, "soat": 387.4}, {"eess": "HOSP HUARMEY - Farmacia", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202602", "receta_ventas": 170.0, "recetas_sis": 395.0, "recetas_intervencion": 7.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 2.0, "ventas": 2248.3, "sis": 36913.58, "intervencion": 14157.66, "dn": 0, "exo": 0, "soat": 49.23}, {"eess": "P.S. 3 DE OCTUBRE", "microred": "YUGOSLAVIA", "periodo": "202602", "receta_ventas": 18.0, "recetas_sis": 717.0, "recetas_intervencion": 18.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 882.0, "sis": 10476.92, "intervencion": 5226.87, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CACHIPAMPA", "microred": "YAUTAN", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 326.0, "recetas_intervencion": 29.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2530.98, "intervencion": 1320.16, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CAPTUY", "microred": "SAN JACINTO", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 0, "recetas_intervencion": 0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1669.99, "intervencion": 0, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COMANDANTE NOEL", "microred": "CASMA", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 355.0, "recetas_intervencion": 137.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 3367.72, "intervencion": 4167.01, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CHACCHAN", "microred": "YAUTAN", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 212.0, "recetas_intervencion": 3.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1713.8, "intervencion": 767.52, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CHIPRE", "microred": "YAUTAN", "periodo": "202602", "receta_ventas": 1.0, "recetas_sis": 68.0, "recetas_intervencion": 12.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 19.6, "sis": 585.54, "intervencion": 93.16, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COCHABAMBA", "microred": "YAUTAN", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 174.0, "recetas_intervencion": 15.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1416.35, "intervencion": 1257.78, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COLCABAMBA", "microred": "YAUTAN", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 103.0, "recetas_intervencion": 9.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 837.38, "intervencion": 314.52, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COLCAP", "microred": "SAN JACINTO", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 218.0, "recetas_intervencion": 3.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1855.89, "intervencion": 766.84, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COMANDANTE NOEL", "microred": "CASMA", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 275.0, "recetas_intervencion": 179.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2501.07, "intervencion": 4152.21, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COMANDANTE NOEL", "microred": "CASMA", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 337.0, "recetas_intervencion": 154.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 4118.76, "intervencion": 4234.39, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COMANDANTE NOEL", "microred": "CASMA", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 320.0, "recetas_intervencion": 125.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 4257.67, "intervencion": 6305.71, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. FORTALEZA", "microred": "YAUTAN", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 163.0, "recetas_intervencion": 7.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1786.43, "intervencion": 2196.98, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUACHO", "microred": "QUILLO", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 557.0, "recetas_intervencion": 5.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 3760.85, "intervencion": 2844.76, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COMANDANTE NOEL", "microred": "CASMA", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 358.0, "recetas_intervencion": 170.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 4157.92, "intervencion": 8033.51, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUAMBACHO", "microred": "YUGOSLAVIA", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 57.0, "recetas_intervencion": 6.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 5387.91, "intervencion": 904.35, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUANCHAY  HZ", "microred": "HUARMEY", "periodo": "202602", "receta_ventas": 1.0, "recetas_sis": 93.0, "recetas_intervencion": 41.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 4.5, "sis": 644.0, "intervencion": 792.36, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COMANDANTE NOEL", "microred": "CASMA", "periodo": "202606", "receta_ventas": 1.0, "recetas_sis": 340.0, "recetas_intervencion": 229.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 18.4, "sis": 3591.62, "intervencion": 5054.31, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUAYAN", "microred": "HUARMEY", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 10.0, "recetas_intervencion": 3.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1793.21, "intervencion": 816.69, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. JIMBE", "microred": "SAN JACINTO", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 63.0, "recetas_intervencion": 8.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 6013.61, "intervencion": 3049.18, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CULEBRAS", "microred": "HUARMEY", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 25.0, "recetas_intervencion": 8.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 9753.11, "intervencion": 1952.68, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LA VICTORIA", "microred": "HUARMEY", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 250.0, "recetas_intervencion": 58.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 14074.37, "intervencion": 23885.48, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LAMPANIN", "microred": "SAN JACINTO", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 7.0, "recetas_intervencion": 7.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 245.3, "intervencion": 374.68, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LOS CHIMUS", "microred": "YUGOSLAVIA", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 122.0, "recetas_intervencion": 17.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1421.69, "intervencion": 319.47, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. MALVAS", "microred": "HUARMEY", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 109.0, "recetas_intervencion": 15.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 599.03, "intervencion": 61.4, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. MOLINO", "microred": "HUARMEY", "periodo": "202602", "receta_ventas": 1.0, "recetas_sis": 10.0, "recetas_intervencion": 6.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 42.3, "sis": 1335.36, "intervencion": 709.8, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. NICOLAS DE GARATEA", "microred": "YUGOSLAVIA", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 1961.0, "recetas_intervencion": 564.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 13592.14, "intervencion": 30804.75, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. PAMPACANCHA", "microred": "QUILLO", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 98.0, "recetas_intervencion": 28.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 807.4, "intervencion": 662.59, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. POCOS", "microred": "SAN JACINTO", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 94.0, "recetas_intervencion": 83.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1829.81, "intervencion": 2141.17, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. PUERTO HUARMEY", "microred": "HUARMEY", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 220.0, "recetas_intervencion": 18.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1422.04, "intervencion": 9432.49, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. RAYPA", "microred": "HUARMEY", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 9.0, "recetas_intervencion": 4.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1632.67, "intervencion": 605.52, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. PUMA PUCLLANAN", "microred": "YAUTAN", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 6.0, "recetas_intervencion": 7.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 792.59, "intervencion": 812.56, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. QUIAN", "microred": "HUARMEY", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 61.0, "recetas_intervencion": 35.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 694.88, "intervencion": 108.97, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. RAYPA", "microred": "HUARMEY", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 7.0, "recetas_intervencion": 5.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1133.01, "intervencion": 2234.98, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SAMANCO", "microred": "YUGOSLAVIA", "periodo": "202602", "receta_ventas": 5.0, "recetas_sis": 553.0, "recetas_intervencion": 40.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 304.2, "sis": 4563.63, "intervencion": 2247.13, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SAN MIGUEL", "microred": "HUARMEY", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 9.0, "recetas_intervencion": 2.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 916.81, "intervencion": 399.08, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CULEBRAS", "microred": "HUARMEY", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 26.0, "recetas_intervencion": 11.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 28909.76, "intervencion": 2259.8, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SATELITE", "microred": "YUGOSLAVIA", "periodo": "202602", "receta_ventas": 2.0, "recetas_sis": 1026.0, "recetas_intervencion": 29.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 10299.28, "intervencion": 12173.34, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CULEBRAS", "microred": "HUARMEY", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 19.0, "recetas_intervencion": 9.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 34911.91, "intervencion": 2699.0, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CULEBRAS", "microred": "HUARMEY", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 18.0, "recetas_intervencion": 9.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 15029.6, "intervencion": 5159.03, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. VILLA MARIA", "microred": "YUGOSLAVIA", "periodo": "202602", "receta_ventas": 5.0, "recetas_sis": 532.0, "recetas_intervencion": 128.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 187.3, "sis": 4944.84, "intervencion": 14459.63, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CULEBRAS", "microred": "HUARMEY", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 37.0, "recetas_intervencion": 18.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 18713.15, "intervencion": 3691.25, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. M. C. DEL ETERNO SOL", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 254.0, "recetas_intervencion": 0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 4536.77, "intervencion": 0, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. MENTAL COMUNITARIO NUEVO PUERTO", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 248.0, "recetas_intervencion": 2.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 4278.37, "intervencion": 14.29, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. MORO", "microred": "SAN JACINTO", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 668.0, "recetas_intervencion": 11.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 13370.26, "intervencion": 6922.15, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. NEPEÑA", "microred": "SAN JACINTO", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 612.0, "recetas_intervencion": 5.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 5264.95, "intervencion": 5287.59, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. PARIACOTO", "microred": "YAUTAN", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 21.0, "recetas_intervencion": 7.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 5885.31, "intervencion": 8981.62, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. QUILLO", "microred": "QUILLO", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 972.0, "recetas_intervencion": 193.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 12891.91, "intervencion": 9714.81, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. SAN JACINTO", "microred": "SAN JACINTO", "periodo": "202603", "receta_ventas": 8.0, "recetas_sis": 1253.0, "recetas_intervencion": 41.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 377.7, "sis": 16609.06, "intervencion": 8303.33, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. YAUTAN", "microred": "YAUTAN", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 900.0, "recetas_intervencion": 12.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 7669.97, "intervencion": 12105.78, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. YUGOSLAVIA", "microred": "YUGOSLAVIA", "periodo": "202603", "receta_ventas": 9.0, "recetas_sis": 4228.0, "recetas_intervencion": 304.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 928.4, "sis": 30253.08, "intervencion": 85254.71, "dn": 0, "exo": 0, "soat": 0}, {"eess": "HOSP CASMA - Farmacia", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202603", "receta_ventas": 35.0, "recetas_sis": 4627.0, "recetas_intervencion": 122.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 18.0, "ventas": 1341.6, "sis": 59831.75, "intervencion": 20233.06, "dn": 80.04, "exo": 0, "soat": 332.95}, {"eess": "HOSP HUARMEY - Farmacia", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202603", "receta_ventas": 212.0, "recetas_sis": 467.0, "recetas_intervencion": 6.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 8.0, "ventas": 3013.7, "sis": 63581.2, "intervencion": 12004.6, "dn": 0, "exo": 0, "soat": 208.05}, {"eess": "P.S. 3 DE OCTUBRE", "microred": "YUGOSLAVIA", "periodo": "202603", "receta_ventas": 16.0, "recetas_sis": 1223.0, "recetas_intervencion": 24.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 662.1, "sis": 17476.12, "intervencion": 26456.18, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CACHIPAMPA", "microred": "YAUTAN", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 405.0, "recetas_intervencion": 36.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 4350.88, "intervencion": 2875.33, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CAPTUY", "microred": "SAN JACINTO", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 0, "recetas_intervencion": 3.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2948.61, "intervencion": 1748.39, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CULEBRAS", "microred": "HUARMEY", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 24.0, "recetas_intervencion": 10.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 11275.84, "intervencion": 2354.52, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CHACCHAN", "microred": "YAUTAN", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 82.0, "recetas_intervencion": 6.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2742.81, "intervencion": 2815.23, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CHIPRE", "microred": "YAUTAN", "periodo": "202603", "receta_ventas": 5.0, "recetas_sis": 111.0, "recetas_intervencion": 15.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 37.0, "sis": 907.31, "intervencion": 112.39, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COCHABAMBA", "microred": "YAUTAN", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 291.0, "recetas_intervencion": 25.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1992.14, "intervencion": 1507.35, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COLCABAMBA", "microred": "YAUTAN", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 40.0, "recetas_intervencion": 4.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 388.57, "intervencion": 32.09, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COLCAP", "microred": "SAN JACINTO", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 318.0, "recetas_intervencion": 3.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 3017.81, "intervencion": 1211.79, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. EL OLIVAR", "microred": "CASMA", "periodo": "202601", "receta_ventas": 2.0, "recetas_sis": 162.0, "recetas_intervencion": 44.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 71.9, "sis": 1101.52, "intervencion": 1144.26, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. EL OLIVAR", "microred": "CASMA", "periodo": "202602", "receta_ventas": 2.0, "recetas_sis": 123.0, "recetas_intervencion": 31.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 37.1, "sis": 1771.52, "intervencion": 198.05, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. EL OLIVAR", "microred": "CASMA", "periodo": "202603", "receta_ventas": 2.0, "recetas_sis": 139.0, "recetas_intervencion": 42.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 96.6, "sis": 2008.0, "intervencion": 657.99, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. FORTALEZA", "microred": "YAUTAN", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 167.0, "recetas_intervencion": 6.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2174.16, "intervencion": 1367.72, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUACHO", "microred": "QUILLO", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 740.0, "recetas_intervencion": 4.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 7896.37, "intervencion": 2561.08, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. EL OLIVAR", "microred": "CASMA", "periodo": "202604", "receta_ventas": 2.0, "recetas_sis": 133.0, "recetas_intervencion": 34.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 117.6, "sis": 1029.25, "intervencion": 1643.29, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUAMBACHO", "microred": "YUGOSLAVIA", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 120.0, "recetas_intervencion": 6.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 4224.73, "intervencion": 4943.75, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUANCHAY  HZ", "microred": "HUARMEY", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 127.0, "recetas_intervencion": 42.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 924.71, "intervencion": 2375.38, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. EL OLIVAR", "microred": "CASMA", "periodo": "202605", "receta_ventas": 2.0, "recetas_sis": 114.0, "recetas_intervencion": 91.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 55.7, "sis": 943.1, "intervencion": 2505.43, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUAYAN", "microred": "HUARMEY", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 11.0, "recetas_intervencion": 4.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1467.43, "intervencion": 940.6, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. JIMBE", "microred": "SAN JACINTO", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 70.0, "recetas_intervencion": 10.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 7484.9, "intervencion": 6021.89, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. EL OLIVAR", "microred": "CASMA", "periodo": "202606", "receta_ventas": 2.0, "recetas_sis": 131.0, "recetas_intervencion": 39.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 36.4, "sis": 1085.72, "intervencion": 1050.05, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LA VICTORIA", "microred": "HUARMEY", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 119.0, "recetas_intervencion": 33.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 18507.88, "intervencion": 14889.01, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LAMPANIN", "microred": "SAN JACINTO", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 10.0, "recetas_intervencion": 9.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 423.2, "intervencion": 633.42, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LOS CHIMUS", "microred": "YUGOSLAVIA", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 154.0, "recetas_intervencion": 15.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1744.21, "intervencion": 199.47, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. MALVAS", "microred": "HUARMEY", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 124.0, "recetas_intervencion": 27.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1532.31, "intervencion": 218.51, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. MOLINO", "microred": "HUARMEY", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 9.0, "recetas_intervencion": 8.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 981.69, "intervencion": 981.23, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. NICOLAS DE GARATEA", "microred": "YUGOSLAVIA", "periodo": "202603", "receta_ventas": 14.0, "recetas_sis": 2096.0, "recetas_intervencion": 848.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 274.0, "sis": 16266.61, "intervencion": 33977.97, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. PAMPACANCHA", "microred": "QUILLO", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 148.0, "recetas_intervencion": 27.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1112.26, "intervencion": 1497.41, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. POCOS", "microred": "SAN JACINTO", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 80.0, "recetas_intervencion": 54.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 3917.97, "intervencion": 1997.31, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. PUERTO HUARMEY", "microred": "HUARMEY", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 204.0, "recetas_intervencion": 20.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1619.2, "intervencion": 1144.01, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. PUMA PUCLLANAN", "microred": "YAUTAN", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 5.0, "recetas_intervencion": 6.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 589.12, "intervencion": 1175.98, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. QUIAN", "microred": "HUARMEY", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 95.0, "recetas_intervencion": 37.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1139.9, "intervencion": 584.22, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. RAYPA", "microred": "HUARMEY", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 11.0, "recetas_intervencion": 5.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1874.17, "intervencion": 1636.15, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SAMANCO", "microred": "YUGOSLAVIA", "periodo": "202603", "receta_ventas": 6.0, "recetas_sis": 446.0, "recetas_intervencion": 48.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 384.7, "sis": 2948.31, "intervencion": 5712.32, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SAN MIGUEL", "microred": "HUARMEY", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 12.0, "recetas_intervencion": 2.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1488.59, "intervencion": 579.36, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUAMBA", "microred": "HUARMEY", "periodo": "202601", "receta_ventas": 0, "recetas_sis": 9.0, "recetas_intervencion": 4.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 686.56, "intervencion": 1171.99, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SATELITE", "microred": "YUGOSLAVIA", "periodo": "202603", "receta_ventas": 3.0, "recetas_sis": 1169.0, "recetas_intervencion": 54.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 41.6, "sis": 9895.81, "intervencion": 38131.08, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUAMBA", "microred": "HUARMEY", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 8.0, "recetas_intervencion": 4.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 662.43, "intervencion": 1535.17, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUAMBA", "microred": "HUARMEY", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 7.0, "recetas_intervencion": 7.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 698.81, "intervencion": 3901.88, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. VILLA MARIA", "microred": "YUGOSLAVIA", "periodo": "202603", "receta_ventas": 6.0, "recetas_sis": 623.0, "recetas_intervencion": 111.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 234.2, "sis": 6851.98, "intervencion": 16208.24, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUAMBA", "microred": "HUARMEY", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 100.0, "recetas_intervencion": 18.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 596.06, "intervencion": 7292.25, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. M. C. DEL ETERNO SOL", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 222.0, "recetas_intervencion": 0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 3716.1, "intervencion": 0, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. MENTAL COMUNITARIO NUEVO PUERTO", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 255.0, "recetas_intervencion": 8.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 4193.43, "intervencion": 51.54, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. MORO", "microred": "SAN JACINTO", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 769.0, "recetas_intervencion": 17.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 20437.87, "intervencion": 18078.97, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. NEPEÑA", "microred": "SAN JACINTO", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 426.0, "recetas_intervencion": 5.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 5305.47, "intervencion": 12242.94, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. PARIACOTO", "microred": "YAUTAN", "periodo": "202604", "receta_ventas": 5.0, "recetas_sis": 208.0, "recetas_intervencion": 15.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 184.8, "sis": 5492.75, "intervencion": 1544.96, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. QUILLO", "microred": "QUILLO", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 935.0, "recetas_intervencion": 331.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 15258.28, "intervencion": 12205.02, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. SAN JACINTO", "microred": "SAN JACINTO", "periodo": "202604", "receta_ventas": 7.0, "recetas_sis": 1263.0, "recetas_intervencion": 51.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 356.7, "sis": 20469.54, "intervencion": 21473.59, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. YAUTAN", "microred": "YAUTAN", "periodo": "202604", "receta_ventas": 4.0, "recetas_sis": 965.0, "recetas_intervencion": 10.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 344.7, "sis": 7169.74, "intervencion": 17445.11, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. YUGOSLAVIA", "microred": "YUGOSLAVIA", "periodo": "202604", "receta_ventas": 10.0, "recetas_sis": 3527.0, "recetas_intervencion": 188.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 763.4, "sis": 40759.52, "intervencion": 98229.04, "dn": 0, "exo": 0, "soat": 0}, {"eess": "HOSP CASMA - Farmacia", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202604", "receta_ventas": 36.0, "recetas_sis": 2939.0, "recetas_intervencion": 97.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 10.0, "ventas": 1079.2, "sis": 57552.85, "intervencion": 22263.58, "dn": 85.35, "exo": 0, "soat": 197.89}, {"eess": "HOSP HUARMEY - Farmacia", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202604", "receta_ventas": 139.0, "recetas_sis": 361.0, "recetas_intervencion": 9.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 1737.5, "sis": 42855.37, "intervencion": 41684.67, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. 3 DE OCTUBRE", "microred": "YUGOSLAVIA", "periodo": "202604", "receta_ventas": 14.0, "recetas_sis": 750.0, "recetas_intervencion": 33.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 641.9, "sis": 11043.65, "intervencion": 25842.94, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CACHIPAMPA", "microred": "YAUTAN", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 331.0, "recetas_intervencion": 44.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 3220.07, "intervencion": 7903.42, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CAPTUY", "microred": "SAN JACINTO", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 0, "recetas_intervencion": 2.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 4028.84, "intervencion": 2097.28, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUAMBA", "microred": "HUARMEY", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 76.0, "recetas_intervencion": 13.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 966.04, "intervencion": 2685.39, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CHACCHAN", "microred": "YAUTAN", "periodo": "202604", "receta_ventas": 1.0, "recetas_sis": 117.0, "recetas_intervencion": 3.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 99.1, "sis": 2100.09, "intervencion": 5874.02, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CHIPRE", "microred": "YAUTAN", "periodo": "202604", "receta_ventas": 3.0, "recetas_sis": 57.0, "recetas_intervencion": 19.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 66.4, "sis": 383.77, "intervencion": 401.23, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COCHABAMBA", "microred": "YAUTAN", "periodo": "202604", "receta_ventas": 4.0, "recetas_sis": 320.0, "recetas_intervencion": 26.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 156.5, "sis": 3547.4, "intervencion": 2862.54, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COLCABAMBA", "microred": "YAUTAN", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 81.0, "recetas_intervencion": 10.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2513.0, "intervencion": 979.15, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COLCAP", "microred": "SAN JACINTO", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 360.0, "recetas_intervencion": 4.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 8180.32, "intervencion": 5050.49, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUAMBA", "microred": "HUARMEY", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 107.0, "recetas_intervencion": 9.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 637.76, "intervencion": 2931.18, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUANCHUY", "microred": "CASMA", "periodo": "202601", "receta_ventas": 1.0, "recetas_sis": 333.0, "recetas_intervencion": 174.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 30.0, "sis": 2647.29, "intervencion": 3291.46, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUANCHUY", "microred": "CASMA", "periodo": "202602", "receta_ventas": 1.0, "recetas_sis": 309.0, "recetas_intervencion": 185.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 45.0, "sis": 1782.77, "intervencion": 2529.18, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. FORTALEZA", "microred": "YAUTAN", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 164.0, "recetas_intervencion": 5.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2972.21, "intervencion": 2136.75, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUACHO", "microred": "QUILLO", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 898.0, "recetas_intervencion": 3.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 10879.35, "intervencion": 478.76, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUANCHUY", "microred": "CASMA", "periodo": "202603", "receta_ventas": 1.0, "recetas_sis": 272.0, "recetas_intervencion": 185.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 33.9, "sis": 2354.61, "intervencion": 4888.37, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUAMBACHO", "microred": "YUGOSLAVIA", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 330.0, "recetas_intervencion": 76.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 8927.27, "intervencion": 5469.18, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUANCHAY  HZ", "microred": "HUARMEY", "periodo": "202604", "receta_ventas": 1.0, "recetas_sis": 112.0, "recetas_intervencion": 31.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 2.1, "sis": 606.33, "intervencion": 712.35, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUANCHUY", "microred": "CASMA", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 234.0, "recetas_intervencion": 127.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2085.72, "intervencion": 3902.59, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUAYAN", "microred": "HUARMEY", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 14.0, "recetas_intervencion": 4.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2839.21, "intervencion": 687.62, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. JIMBE", "microred": "SAN JACINTO", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 69.0, "recetas_intervencion": 15.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 5100.87, "intervencion": 9974.8, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUANCHUY", "microred": "CASMA", "periodo": "202605", "receta_ventas": 1.0, "recetas_sis": 237.0, "recetas_intervencion": 117.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 46.5, "sis": 6157.95, "intervencion": 3851.55, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LA VICTORIA", "microred": "HUARMEY", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 871.0, "recetas_intervencion": 145.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 13520.36, "intervencion": 30952.06, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LAMPANIN", "microred": "SAN JACINTO", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 8.0, "recetas_intervencion": 7.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 594.91, "intervencion": 3242.15, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LOS CHIMUS", "microred": "YUGOSLAVIA", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 118.0, "recetas_intervencion": 6.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 812.78, "intervencion": 825.54, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. MALVAS", "microred": "HUARMEY", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 137.0, "recetas_intervencion": 44.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1436.96, "intervencion": 749.91, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. MOLINO", "microred": "HUARMEY", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 13.0, "recetas_intervencion": 9.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1058.95, "intervencion": 2763.03, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. NICOLAS DE GARATEA", "microred": "YUGOSLAVIA", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 2060.0, "recetas_intervencion": 913.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 15546.21, "intervencion": 66143.37, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. PAMPACANCHA", "microred": "QUILLO", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 139.0, "recetas_intervencion": 24.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1526.55, "intervencion": 1273.49, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. POCOS", "microred": "SAN JACINTO", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 77.0, "recetas_intervencion": 56.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 7975.17, "intervencion": 3665.98, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. PUERTO HUARMEY", "microred": "HUARMEY", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 132.0, "recetas_intervencion": 29.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2585.31, "intervencion": 6048.38, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. PUMA PUCLLANAN", "microred": "YAUTAN", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 8.0, "recetas_intervencion": 3.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2277.6, "intervencion": 44508.55, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. QUIAN", "microred": "HUARMEY", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 128.0, "recetas_intervencion": 49.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 994.84, "intervencion": 1277.17, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. RAYPA", "microred": "HUARMEY", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 11.0, "recetas_intervencion": 3.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1919.62, "intervencion": 1706.54, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SAMANCO", "microred": "YUGOSLAVIA", "periodo": "202604", "receta_ventas": 5.0, "recetas_sis": 516.0, "recetas_intervencion": 40.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 265.2, "sis": 3687.12, "intervencion": 7263.31, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SAN MIGUEL", "microred": "HUARMEY", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 13.0, "recetas_intervencion": 2.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1936.22, "intervencion": 789.24, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUANCHUY", "microred": "CASMA", "periodo": "202606", "receta_ventas": 1.0, "recetas_sis": 207.0, "recetas_intervencion": 117.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 35.0, "sis": 3030.41, "intervencion": 3730.27, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SATELITE", "microred": "YUGOSLAVIA", "periodo": "202604", "receta_ventas": 4.0, "recetas_sis": 1323.0, "recetas_intervencion": 40.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 9916.11, "intervencion": 8502.25, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LA GRAMITA", "microred": "CASMA", "periodo": "202601", "receta_ventas": 1.0, "recetas_sis": 88.0, "recetas_intervencion": 28.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 3.0, "sis": 1425.33, "intervencion": 192.12, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LA GRAMITA", "microred": "CASMA", "periodo": "202602", "receta_ventas": 1.0, "recetas_sis": 72.0, "recetas_intervencion": 25.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 29.0, "sis": 5159.55, "intervencion": 2227.5, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. VILLA MARIA", "microred": "YUGOSLAVIA", "periodo": "202604", "receta_ventas": 6.0, "recetas_sis": 677.0, "recetas_intervencion": 131.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 206.0, "sis": 7350.79, "intervencion": 38350.56, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LA GRAMITA", "microred": "CASMA", "periodo": "202603", "receta_ventas": 0, "recetas_sis": 71.0, "recetas_intervencion": 14.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 16379.78, "intervencion": 4415.12, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. M. C. DEL ETERNO SOL", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 223.0, "recetas_intervencion": 0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 3420.49, "intervencion": 0, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. MENTAL COMUNITARIO NUEVO PUERTO", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 307.0, "recetas_intervencion": 5.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 5122.24, "intervencion": 13.46, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. MORO", "microred": "SAN JACINTO", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 851.0, "recetas_intervencion": 19.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 9152.81, "intervencion": 14779.87, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. NEPEÑA", "microred": "SAN JACINTO", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 610.0, "recetas_intervencion": 6.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 5932.32, "intervencion": 11408.69, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. PARIACOTO", "microred": "YAUTAN", "periodo": "202605", "receta_ventas": 7.0, "recetas_sis": 521.0, "recetas_intervencion": 30.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 249.7, "sis": 6309.15, "intervencion": 16770.57, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. QUILLO", "microred": "QUILLO", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 1070.0, "recetas_intervencion": 197.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 12007.2, "intervencion": 10272.25, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. SAN JACINTO", "microred": "SAN JACINTO", "periodo": "202605", "receta_ventas": 8.0, "recetas_sis": 1202.0, "recetas_intervencion": 46.0, "rec_dn": 0, "rec_exo": 3.0, "rec_soat": 0, "ventas": 295.2, "sis": 14125.33, "intervencion": 17858.65, "dn": 0, "exo": 26.6, "soat": 0}, {"eess": "C.S. YAUTAN", "microred": "YAUTAN", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 1013.0, "recetas_intervencion": 12.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 8278.96, "intervencion": 19541.87, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. YUGOSLAVIA", "microred": "YUGOSLAVIA", "periodo": "202605", "receta_ventas": 11.0, "recetas_sis": 3781.0, "recetas_intervencion": 156.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 1049.6, "sis": 26534.64, "intervencion": 132903.82, "dn": 0, "exo": 0, "soat": 0}, {"eess": "HOSP CASMA - Farmacia", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202605", "receta_ventas": 32.0, "recetas_sis": 956.0, "recetas_intervencion": 74.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 1350.6, "sis": 50914.23, "intervencion": 16078.8, "dn": 12.59, "exo": 0, "soat": 0}, {"eess": "HOSP HUARMEY - Farmacia", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202605", "receta_ventas": 78.0, "recetas_sis": 452.0, "recetas_intervencion": 8.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 3.0, "ventas": 2324.4, "sis": 43490.65, "intervencion": 38761.09, "dn": 0, "exo": 0, "soat": 96.69}, {"eess": "P.S. 3 DE OCTUBRE", "microred": "YUGOSLAVIA", "periodo": "202605", "receta_ventas": 16.0, "recetas_sis": 929.0, "recetas_intervencion": 46.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 653.1, "sis": 12230.37, "intervencion": 19976.25, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CACHIPAMPA", "microred": "YAUTAN", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 287.0, "recetas_intervencion": 23.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2759.07, "intervencion": 2842.42, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CAPTUY", "microred": "SAN JACINTO", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 0, "recetas_intervencion": 0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 0, "intervencion": 0, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LA GRAMITA", "microred": "CASMA", "periodo": "202604", "receta_ventas": 0, "recetas_sis": 100.0, "recetas_intervencion": 22.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 41040.05, "intervencion": 7614.85, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CHACCHAN", "microred": "YAUTAN", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 139.0, "recetas_intervencion": 7.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1715.28, "intervencion": 1740.77, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CHIPRE", "microred": "YAUTAN", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 26.0, "recetas_intervencion": 6.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 935.5, "intervencion": 379.79, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COCHABAMBA", "microred": "YAUTAN", "periodo": "202605", "receta_ventas": 3.0, "recetas_sis": 310.0, "recetas_intervencion": 23.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 116.7, "sis": 2255.83, "intervencion": 1083.91, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COLCABAMBA", "microred": "YAUTAN", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 53.0, "recetas_intervencion": 0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 917.15, "intervencion": 0, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COLCAP", "microred": "SAN JACINTO", "periodo": "202605", "receta_ventas": 203.0, "recetas_sis": 2.0, "recetas_intervencion": 10.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 6958.7, "sis": 40.04, "intervencion": 7867.74, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LA GRAMITA", "microred": "CASMA", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 96.0, "recetas_intervencion": 30.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 24882.02, "intervencion": 20616.46, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LA GRAMITA", "microred": "CASMA", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 112.0, "recetas_intervencion": 26.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 38490.79, "intervencion": 8331.07, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SAN RAFAEL", "microred": "CASMA", "periodo": "202601", "receta_ventas": 1.0, "recetas_sis": 222.0, "recetas_intervencion": 171.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 25.3, "sis": 1812.32, "intervencion": 2566.93, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. FORTALEZA", "microred": "YAUTAN", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 158.0, "recetas_intervencion": 5.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 3056.96, "intervencion": 2368.81, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUACHO", "microred": "QUILLO", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 817.0, "recetas_intervencion": 14.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 7369.0, "intervencion": 4731.4, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SAN RAFAEL", "microred": "CASMA", "periodo": "202602", "receta_ventas": 0, "recetas_sis": 199.0, "recetas_intervencion": 102.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1456.74, "intervencion": 4158.52, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUAMBACHO", "microred": "YUGOSLAVIA", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 324.0, "recetas_intervencion": 71.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 3367.44, "intervencion": 3606.49, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUANCHAY  HZ", "microred": "HUARMEY", "periodo": "202605", "receta_ventas": 1.0, "recetas_sis": 126.0, "recetas_intervencion": 26.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 5.4, "sis": 1329.83, "intervencion": 1681.65, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SAN RAFAEL", "microred": "CASMA", "periodo": "202603", "receta_ventas": 1.0, "recetas_sis": 189.0, "recetas_intervencion": 129.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 17.6, "sis": 1646.64, "intervencion": 3265.5, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUAYAN", "microred": "HUARMEY", "periodo": "202605", "receta_ventas": 1.0, "recetas_sis": 16.0, "recetas_intervencion": 3.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 7.2, "sis": 4622.88, "intervencion": 2008.71, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. JIMBE", "microred": "SAN JACINTO", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 65.0, "recetas_intervencion": 13.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 4510.37, "intervencion": 6259.09, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SAN RAFAEL", "microred": "CASMA", "periodo": "202604", "receta_ventas": 1.0, "recetas_sis": 257.0, "recetas_intervencion": 200.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 13.6, "sis": 2185.59, "intervencion": 9027.43, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LA VICTORIA", "microred": "HUARMEY", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 1195.0, "recetas_intervencion": 162.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 13527.51, "intervencion": 21896.61, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LAMPANIN", "microred": "SAN JACINTO", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 9.0, "recetas_intervencion": 5.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 608.27, "intervencion": 1668.75, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LOS CHIMUS", "microred": "YUGOSLAVIA", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 72.0, "recetas_intervencion": 20.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1015.42, "intervencion": 592.01, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. MALVAS", "microred": "HUARMEY", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 79.0, "recetas_intervencion": 37.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2298.0, "intervencion": 441.0, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. MOLINO", "microred": "HUARMEY", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 7.0, "recetas_intervencion": 6.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 628.38, "intervencion": 1923.61, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. NICOLAS DE GARATEA", "microred": "YUGOSLAVIA", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 2151.0, "recetas_intervencion": 651.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 17121.71, "intervencion": 110584.29, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. PAMPACANCHA", "microred": "QUILLO", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 254.0, "recetas_intervencion": 38.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1978.63, "intervencion": 3939.11, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. POCOS", "microred": "SAN JACINTO", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 80.0, "recetas_intervencion": 50.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 3631.27, "intervencion": 2844.13, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. PUERTO HUARMEY", "microred": "HUARMEY", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 41.0, "recetas_intervencion": 22.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 23921.12, "intervencion": 4554.62, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. PUMA PUCLLANAN", "microred": "YAUTAN", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 5.0, "recetas_intervencion": 6.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2002.76, "intervencion": 68925.28, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. QUIAN", "microred": "HUARMEY", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 143.0, "recetas_intervencion": 49.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2202.9, "intervencion": 971.08, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. RAYPA", "microred": "HUARMEY", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 9.0, "recetas_intervencion": 5.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1326.76, "intervencion": 3083.0, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SAMANCO", "microred": "YUGOSLAVIA", "periodo": "202605", "receta_ventas": 5.0, "recetas_sis": 465.0, "recetas_intervencion": 42.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 222.2, "sis": 2790.86, "intervencion": 5547.09, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SAN MIGUEL", "microred": "HUARMEY", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 11.0, "recetas_intervencion": 6.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1484.13, "intervencion": 1554.3, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SAN RAFAEL", "microred": "CASMA", "periodo": "202605", "receta_ventas": 1.0, "recetas_sis": 119.0, "recetas_intervencion": 154.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 22.5, "sis": 761.36, "intervencion": 6228.8, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SATELITE", "microred": "YUGOSLAVIA", "periodo": "202605", "receta_ventas": 4.0, "recetas_sis": 1483.0, "recetas_intervencion": 46.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 9589.05, "intervencion": 36859.54, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SAN RAFAEL", "microred": "CASMA", "periodo": "202606", "receta_ventas": 1.0, "recetas_sis": 196.0, "recetas_intervencion": 269.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 12.4, "sis": 1306.24, "intervencion": 4086.5, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. TORTUGAS", "microred": "CASMA", "periodo": "202601", "receta_ventas": 2.0, "recetas_sis": 73.0, "recetas_intervencion": 43.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 71.3, "sis": 652.84, "intervencion": 294.94, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. VILLA MARIA", "microred": "YUGOSLAVIA", "periodo": "202605", "receta_ventas": 6.0, "recetas_sis": 706.0, "recetas_intervencion": 134.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 237.7, "sis": 6392.35, "intervencion": 32570.32, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. TORTUGAS", "microred": "CASMA", "periodo": "202602", "receta_ventas": 2.0, "recetas_sis": 72.0, "recetas_intervencion": 84.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 49.0, "sis": 639.77, "intervencion": 554.42, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. M. C. DEL ETERNO SOL", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 234.0, "recetas_intervencion": 0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 3717.08, "intervencion": 0, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. MENTAL COMUNITARIO NUEVO PUERTO", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 333.0, "recetas_intervencion": 2.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 4886.31, "intervencion": 5.33, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. MORO", "microred": "SAN JACINTO", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 926.0, "recetas_intervencion": 28.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 10725.18, "intervencion": 14169.48, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. NEPEÑA", "microred": "SAN JACINTO", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 483.0, "recetas_intervencion": 5.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 5833.63, "intervencion": 7494.52, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. PARIACOTO", "microred": "YAUTAN", "periodo": "202606", "receta_ventas": 7.0, "recetas_sis": 570.0, "recetas_intervencion": 20.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 362.8, "sis": 10889.09, "intervencion": 5471.59, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. QUILLO", "microred": "QUILLO", "periodo": "202606", "receta_ventas": 1.0, "recetas_sis": 876.0, "recetas_intervencion": 182.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 6.9, "sis": 15490.21, "intervencion": 8348.83, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. SAN JACINTO", "microred": "SAN JACINTO", "periodo": "202606", "receta_ventas": 7.0, "recetas_sis": 1296.0, "recetas_intervencion": 40.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 322.1, "sis": 11848.67, "intervencion": 8531.04, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. YAUTAN", "microred": "YAUTAN", "periodo": "202606", "receta_ventas": 3.0, "recetas_sis": 962.0, "recetas_intervencion": 14.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 282.4, "sis": 7589.14, "intervencion": 14312.84, "dn": 0, "exo": 0, "soat": 0}, {"eess": "C.S. YUGOSLAVIA", "microred": "YUGOSLAVIA", "periodo": "202606", "receta_ventas": 7.0, "recetas_sis": 3865.0, "recetas_intervencion": 198.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 784.0, "sis": 27736.5, "intervencion": 104352.16, "dn": 0, "exo": 0, "soat": 0}, {"eess": "HOSP CASMA - Farmacia", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202606", "receta_ventas": 44.0, "recetas_sis": 5008.0, "recetas_intervencion": 131.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 11.0, "ventas": 1124.0, "sis": 56519.69, "intervencion": 5014.4, "dn": 0, "exo": 0, "soat": 243.52}, {"eess": "HOSP HUARMEY - Farmacia", "microred": "NO PERTENECE A NINGUNA MICRO RED", "periodo": "202606", "receta_ventas": 105.0, "recetas_sis": 796.0, "recetas_intervencion": 9.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 2.0, "ventas": 2281.7, "sis": 37250.49, "intervencion": 14530.96, "dn": 0, "exo": 0, "soat": 25.76}, {"eess": "P.S. 3 DE OCTUBRE", "microred": "YUGOSLAVIA", "periodo": "202606", "receta_ventas": 27.0, "recetas_sis": 961.0, "recetas_intervencion": 46.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 856.5, "sis": 14235.43, "intervencion": 8450.66, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CACHIPAMPA", "microred": "YAUTAN", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 335.0, "recetas_intervencion": 18.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2880.96, "intervencion": 3838.29, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CAPTUY", "microred": "SAN JACINTO", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 0, "recetas_intervencion": 1.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 3135.57, "intervencion": 229.56, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. TORTUGAS", "microred": "CASMA", "periodo": "202603", "receta_ventas": 1.0, "recetas_sis": 134.0, "recetas_intervencion": 49.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 11.6, "sis": 968.7, "intervencion": 503.4, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CHACCHAN", "microred": "YAUTAN", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 186.0, "recetas_intervencion": 4.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2436.82, "intervencion": 1450.3, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. CHIPRE", "microred": "YAUTAN", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 106.0, "recetas_intervencion": 23.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1855.62, "intervencion": 162.13, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COCHABAMBA", "microred": "YAUTAN", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 346.0, "recetas_intervencion": 24.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2572.12, "intervencion": 2298.74, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COLCABAMBA", "microred": "YAUTAN", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 76.0, "recetas_intervencion": 17.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1647.21, "intervencion": 625.84, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. COLCAP", "microred": "SAN JACINTO", "periodo": "202606", "receta_ventas": 1.0, "recetas_sis": 190.0, "recetas_intervencion": 44.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 29.2, "sis": 2950.14, "intervencion": 3099.07, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. TORTUGAS", "microred": "CASMA", "periodo": "202604", "receta_ventas": 1.0, "recetas_sis": 93.0, "recetas_intervencion": 43.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 7.6, "sis": 599.75, "intervencion": 2133.58, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. TORTUGAS", "microred": "CASMA", "periodo": "202605", "receta_ventas": 1.0, "recetas_sis": 89.0, "recetas_intervencion": 64.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 6.4, "sis": 495.62, "intervencion": 1986.56, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. TORTUGAS", "microred": "CASMA", "periodo": "202606", "receta_ventas": 1.0, "recetas_sis": 109.0, "recetas_intervencion": 35.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 37.5, "sis": 772.99, "intervencion": 917.46, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. FORTALEZA", "microred": "YAUTAN", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 193.0, "recetas_intervencion": 6.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 3584.84, "intervencion": 1596.99, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUACHO", "microred": "QUILLO", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 780.0, "recetas_intervencion": 7.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 5510.06, "intervencion": 3096.1, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. VILLA HERMOSA", "microred": "CASMA", "periodo": "202601", "receta_ventas": 2.0, "recetas_sis": 772.0, "recetas_intervencion": 442.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 78.3, "sis": 9720.72, "intervencion": 12551.71, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUAMBACHO", "microred": "YUGOSLAVIA", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 366.0, "recetas_intervencion": 56.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2361.78, "intervencion": 2588.0, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUANCHAY  HZ", "microred": "HUARMEY", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 136.0, "recetas_intervencion": 32.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 929.85, "intervencion": 2840.84, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. VILLA HERMOSA", "microred": "CASMA", "periodo": "202602", "receta_ventas": 2.0, "recetas_sis": 901.0, "recetas_intervencion": 395.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 96.6, "sis": 9467.65, "intervencion": 4239.22, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. HUAYAN", "microred": "HUARMEY", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 18.0, "recetas_intervencion": 2.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 71532.58, "intervencion": 628.43, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. JIMBE", "microred": "SAN JACINTO", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 66.0, "recetas_intervencion": 12.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 5334.49, "intervencion": 4460.87, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. VILLA HERMOSA", "microred": "CASMA", "periodo": "202603", "receta_ventas": 1.0, "recetas_sis": 886.0, "recetas_intervencion": 385.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 66.4, "sis": 9364.01, "intervencion": 24841.59, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LA VICTORIA", "microred": "HUARMEY", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 1039.0, "recetas_intervencion": 187.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 11726.92, "intervencion": 14433.19, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LAMPANIN", "microred": "SAN JACINTO", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 12.0, "recetas_intervencion": 7.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1067.56, "intervencion": 1587.11, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. LOS CHIMUS", "microred": "YUGOSLAVIA", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 68.0, "recetas_intervencion": 36.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 771.93, "intervencion": 74.47, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. MALVAS", "microred": "HUARMEY", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 82.0, "recetas_intervencion": 6.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 608.12, "intervencion": 30.04, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. MOLINO", "microred": "HUARMEY", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 6.0, "recetas_intervencion": 6.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 524.81, "intervencion": 818.7, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. NICOLAS DE GARATEA", "microred": "YUGOSLAVIA", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 1725.0, "recetas_intervencion": 377.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 14075.54, "intervencion": 42522.16, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. PAMPACANCHA", "microred": "QUILLO", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 178.0, "recetas_intervencion": 26.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1765.83, "intervencion": 1319.29, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. POCOS", "microred": "SAN JACINTO", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 88.0, "recetas_intervencion": 50.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1602.07, "intervencion": 2550.49, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. PUERTO HUARMEY", "microred": "HUARMEY", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 56.0, "recetas_intervencion": 14.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2210.89, "intervencion": 643.61, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. PUMA PUCLLANAN", "microred": "YAUTAN", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 7.0, "recetas_intervencion": 6.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 4274.56, "intervencion": 11974.54, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. QUIAN", "microred": "HUARMEY", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 113.0, "recetas_intervencion": 9.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 1156.95, "intervencion": 795.66, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. RAYPA", "microred": "HUARMEY", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 9.0, "recetas_intervencion": 5.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 2173.77, "intervencion": 1855.96, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SAMANCO", "microred": "YUGOSLAVIA", "periodo": "202606", "receta_ventas": 4.0, "recetas_sis": 450.0, "recetas_intervencion": 52.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 193.6, "sis": 3173.61, "intervencion": 5167.79, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SAN MIGUEL", "microred": "HUARMEY", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 8.0, "recetas_intervencion": 5.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 949.71, "intervencion": 1070.28, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. VILLA HERMOSA", "microred": "CASMA", "periodo": "202604", "receta_ventas": 1.0, "recetas_sis": 899.0, "recetas_intervencion": 393.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 100.3, "sis": 7408.41, "intervencion": 27054.63, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. SATELITE", "microred": "YUGOSLAVIA", "periodo": "202606", "receta_ventas": 6.0, "recetas_sis": 1196.0, "recetas_intervencion": 48.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 75.4, "sis": 9024.66, "intervencion": 40883.26, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. VILLA HERMOSA", "microred": "CASMA", "periodo": "202605", "receta_ventas": 0, "recetas_sis": 685.0, "recetas_intervencion": 362.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 6439.12, "intervencion": 15365.87, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. VILLA HERMOSA", "microred": "CASMA", "periodo": "202606", "receta_ventas": 0, "recetas_sis": 777.0, "recetas_intervencion": 345.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 0, "sis": 7030.6, "intervencion": 11705.15, "dn": 0, "exo": 0, "soat": 0}, {"eess": "P.S. VILLA MARIA", "microred": "YUGOSLAVIA", "periodo": "202606", "receta_ventas": 6.0, "recetas_sis": 577.0, "recetas_intervencion": 137.0, "rec_dn": 0, "rec_exo": 0, "rec_soat": 0, "ventas": 192.9, "sis": 4518.78, "intervencion": 34656.02, "dn": 0, "exo": 0, "soat": 0}];
+        let currentFilteredData = [];
+        let currentPage = 1;
+        let pageSize = 50;
+        let totalPages = 1;
+
+        const mesNombres = {
+            '01': 'Enero', '02': 'Febrero', '03': 'Marzo',
+            '04': 'Abril', '05': 'Mayo', '06': 'Junio',
+            '07': 'Julio', '08': 'Agosto', '09': 'Septiembre',
+            '10': 'Octubre', '11': 'Noviembre', '12': 'Diciembre'
+        };
+
+        let chartBar = null;
+        let chartDoughnut = null;
+
+        function initDashboard() {
+            populateFilterOptions();
+            applyFilters();
+        }
+
+        function populateFilterOptions() {
+            const microredes = new Set();
+            const eessSet = new Set();
+            const anios = new Set();
+            const meses = new Set();
+
+            rawData.forEach(item => {
+                if (item.microred) microredes.add(item.microred);
+                if (item.eess) eessSet.add(item.eess);
+                if (item.periodo && String(item.periodo).length === 6) {
+                    anios.add(String(item.periodo).substring(0, 4));
+                    meses.add(String(item.periodo).substring(4, 6));
+                }
+            });
+
+            // Microredes
+            const selMicrored = document.getElementById('filterMicrored');
+            selMicrored.innerHTML = '<option value="ALL">Todas las Microredes</option>';
+            Array.from(microredes).sort().forEach(m => {
+                selMicrored.innerHTML += `<option value="${m}">${m}</option>`;
+            });
+
+            // EESS
+            updateEESSSelectOptions(Array.from(eessSet).sort());
+
+            // Anio
+            const selAnio = document.getElementById('filterAnio');
+            selAnio.innerHTML = '<option value="ALL">Todos los Años</option>';
+            Array.from(anios).sort().forEach(a => {
+                selAnio.innerHTML += `<option value="${a}">${a}</option>`;
+            });
+
+            // Mes
+            const selMes = document.getElementById('filterMes');
+            selMes.innerHTML = '<option value="ALL">Todos los Meses</option>';
+            Array.from(meses).sort().forEach(m => {
+                selMes.innerHTML += `<option value="${m}">${mesNombres[m] || m}</option>`;
+            });
+        }
+
+        function updateEESSSelectOptions(eessList) {
+            const selEESS = document.getElementById('filterEESS');
+            const currentVal = selEESS.value;
+            selEESS.innerHTML = '<option value="ALL">Todos los Establecimientos</option>';
+            eessList.forEach(e => {
+                selEESS.innerHTML += `<option value="${e}">${e}</option>`;
+            });
+            if (eessList.includes(currentVal)) {
+                selEESS.value = currentVal;
+            } else {
+                selEESS.value = 'ALL';
+            }
+        }
+
+        function onMicroredChange() {
+            const selMicrored = document.getElementById('filterMicrored').value;
+            if (selMicrored === 'ALL') {
+                const allEESS = new Set(rawData.map(r => r.eess));
+                updateEESSSelectOptions(Array.from(allEESS).sort());
+            } else {
+                const filteredEESS = new Set(rawData.filter(r => r.microred === selMicrored).map(r => r.eess));
+                updateEESSSelectOptions(Array.from(filteredEESS).sort());
+            }
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const selMicrored = document.getElementById('filterMicrored').value;
+            const selEESS = document.getElementById('filterEESS').value;
+            const selAnio = document.getElementById('filterAnio').value;
+            const selMes = document.getElementById('filterMes').value;
+
+            currentFilteredData = rawData.filter(item => {
+                const p = String(item.periodo || '');
+                const itemAnio = p.length === 6 ? p.substring(0, 4) : '';
+                const itemMes = p.length === 6 ? p.substring(4, 6) : '';
+
+                if (selMicrored !== 'ALL' && item.microred !== selMicrored) return false;
+                if (selEESS !== 'ALL' && item.eess !== selEESS) return false;
+                if (selAnio !== 'ALL' && itemAnio !== selAnio) return false;
+                if (selMes !== 'ALL' && itemMes !== selMes) return false;
+                return true;
+            });
+
+            updateKPIs(currentFilteredData);
+            updateCharts(currentFilteredData);
+            
+            currentPage = 1;
+            renderTablePage();
+        }
+
+        function updateKPIs(data) {
+            let sis = 0, interv = 0, ventas = 0, exo = 0, soat = 0, dn = 0;
+            let recSis = 0, recInterv = 0, recVentas = 0, recExo = 0, recSoat = 0, recDn = 0;
+
+            data.forEach(item => {
+                sis += item.sis || 0;
+                interv += item.intervencion || 0;
+                ventas += item.ventas || 0;
+                exo += item.exo || 0;
+                soat += item.soat || 0;
+                dn += item.dn || 0;
+
+                recSis += item.recetas_sis || 0;
+                recInterv += item.recetas_intervencion || 0;
+                recVentas += item.receta_ventas || 0;
+                recExo += item.rec_exo || 0;
+                recSoat += item.rec_soat || 0;
+                recDn += item.rec_dn || 0;
+            });
+
+            document.getElementById('kpiSIS').innerText = 'S/ ' + sis.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('kpiRecetasSIS').innerText = recSis.toLocaleString('es-PE') + ' Recetas SIS';
+
+            document.getElementById('kpiIntervencion').innerText = 'S/ ' + interv.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('kpiRecetasIntervencion').innerText = recInterv.toLocaleString('es-PE') + ' Recetas Interv.';
+
+            document.getElementById('kpiVentas').innerText = 'S/ ' + ventas.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('kpiRecetasVentas').innerText = recVentas.toLocaleString('es-PE') + ' Recetas Ventas';
+
+            document.getElementById('kpiExo').innerText = 'S/ ' + exo.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('kpiRecetasExo').innerText = recExo.toLocaleString('es-PE') + ' Recetas Exo.';
+
+            document.getElementById('kpiSoat').innerText = 'S/ ' + soat.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('kpiRecetasSoat').innerText = recSoat.toLocaleString('es-PE') + ' Recetas SOAT';
+
+            document.getElementById('kpiDN').innerText = 'S/ ' + dn.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('kpiRecetasDN').innerText = recDn.toLocaleString('es-PE') + ' Recetas DN';
+        }
+
+        function updateCharts(data) {
+            const eessTotals = {};
+            data.forEach(i => {
+                const tot = (i.sis || 0) + (i.intervencion || 0) + (i.ventas || 0) + (i.exo || 0) + (i.soat || 0);
+                eessTotals[i.eess] = (eessTotals[i.eess] || 0) + tot;
+            });
+
+            const sortedEESS = Object.entries(eessTotals)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            const topEESSList = sortedEESS.map(x => x[0]);
+            
+            const sisData = topEESSList.map(eess => data.filter(d => d.eess === eess).reduce((acc, curr) => acc + (curr.sis || 0), 0));
+            const intervData = topEESSList.map(eess => data.filter(d => d.eess === eess).reduce((acc, curr) => acc + (curr.intervencion || 0), 0));
+            const ventasData = topEESSList.map(eess => data.filter(d => d.eess === eess).reduce((acc, curr) => acc + (curr.ventas || 0), 0));
+
+            if (chartBar) chartBar.destroy();
+            const ctxBar = document.getElementById('barChartEESS').getContext('2d');
+            chartBar = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: topEESSList,
+                    datasets: [
+                        { label: 'SIS', data: sisData, backgroundColor: '#38bdf8', borderRadius: 4 },
+                        { label: 'Intervención', data: intervData, backgroundColor: '#c084fc', borderRadius: 4 },
+                        { label: 'Ventas', data: ventasData, backgroundColor: '#34d399', borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // PREVIENE LA DISTORSIÓN EN ZOOM
+                    plugins: { legend: { labels: { color: '#f8fafc' } } },
+                    scales: {
+                        y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { display: false } }
+                    }
+                }
+            });
+
+            let totalSIS = 0, totalInterv = 0, totalVentas = 0, totalExo = 0, totalSoat = 0;
+            data.forEach(i => {
+                totalSIS += i.sis || 0;
+                totalInterv += i.intervencion || 0;
+                totalVentas += i.ventas || 0;
+                totalExo += i.exo || 0;
+                totalSoat += i.soat || 0;
+            });
+
+            if (chartDoughnut) chartDoughnut.destroy();
+            const ctxPie = document.getElementById('doughnutChart').getContext('2d');
+            chartDoughnut = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: ['SIS', 'Intervención Sanitaria', 'Ventas Directas', 'Exonerados', 'SOAT'],
+                    datasets: [{
+                        data: [totalSIS, totalInterv, totalVentas, totalExo, totalSoat],
+                        backgroundColor: ['#38bdf8', '#c084fc', '#34d399', '#fbbf24', '#fb7185']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // PREVIENE LA DISTORSIÓN EN ZOOM
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#f8fafc', font: { size: 11 } } }
+                    }
+                }
+            });
+        }
+
+        // LÓGICA DE PAGINACIÓN DE LA TABLA
+        function onPageSizeChange() {
+            const val = document.getElementById('pageSizeSelect').value;
+            pageSize = val === 'ALL' ? currentFilteredData.length : parseInt(val);
+            currentPage = 1;
+            renderTablePage();
+        }
+
+        function goToPage(page) {
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderTablePage();
+        }
+
+        function renderTablePage() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            const total = currentFilteredData.length;
+            if (total === 0) {
+                tbody.innerHTML = '<tr><td colspan="14" style="text-align: center; color: var(--text-muted); padding: 2rem;">No se encontraron registros para los filtros seleccionados.</td></tr>';
+                document.getElementById('paginationSummary').innerText = 'Mostrando 0 - 0 de 0 registros';
+                document.getElementById('lblCurrentPage').innerText = '1';
+                document.getElementById('lblTotalPages').innerText = '1';
+                document.getElementById('btnFirst').disabled = true;
+                document.getElementById('btnPrev').disabled = true;
+                document.getElementById('btnNext').disabled = true;
+                document.getElementById('btnLast').disabled = true;
+                return;
+            }
+
+            const effectivePageSize = pageSize === 'ALL' ? total : pageSize;
+            totalPages = Math.ceil(total / effectivePageSize);
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            const startIdx = (currentPage - 1) * effectivePageSize;
+            const endIdx = Math.min(startIdx + effectivePageSize, total);
+
+            const pageData = currentFilteredData.slice(startIdx, endIdx);
+
+            pageData.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><span class="badge badge-microred">${item.microred || 'N/A'}</span></td>
+                    <td><span class="badge badge-eess">${item.eess}</span></td>
+                    <td>${item.periodo}</td>
+                    <td>S/ ${(item.sis || 0).toLocaleString('es-PE', {minimumFractionDigits: 2})}</td>
+                    <td>${item.recetas_sis || 0}</td>
+                    <td>S/ ${(item.intervencion || 0).toLocaleString('es-PE', {minimumFractionDigits: 2})}</td>
+                    <td>${item.recetas_intervencion || 0}</td>
+                    <td>S/ ${(item.ventas || 0).toLocaleString('es-PE', {minimumFractionDigits: 2})}</td>
+                    <td>${item.receta_ventas || 0}</td>
+                    <td>S/ ${(item.exo || 0).toLocaleString('es-PE', {minimumFractionDigits: 2})}</td>
+                    <td>${item.rec_exo || 0}</td>
+                    <td>S/ ${(item.soat || 0).toLocaleString('es-PE', {minimumFractionDigits: 2})}</td>
+                    <td>${item.rec_soat || 0}</td>
+                    <td>S/ ${(item.dn || 0).toLocaleString('es-PE', {minimumFractionDigits: 2})}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            document.getElementById('paginationSummary').innerText = `Mostrando ${startIdx + 1} - ${endIdx} de ${total} registros`;
+            document.getElementById('lblCurrentPage').innerText = currentPage;
+            document.getElementById('lblTotalPages').innerText = totalPages;
+
+            document.getElementById('btnFirst').disabled = currentPage === 1;
+            document.getElementById('btnPrev').disabled = currentPage === 1;
+            document.getElementById('btnNext').disabled = currentPage === totalPages;
+            document.getElementById('btnLast').disabled = currentPage === totalPages;
+        }
+
+        // Helper para mapear columnas en Excel
+        function getColValue(row, possibleNames) {
+            const keys = Object.keys(row);
+            for (let name of possibleNames) {
+                const target = name.toLowerCase().replace(/\s+/g, '');
+                for (let k of keys) {
+                    const cleanK = k.toLowerCase().replace(/\s+/g, '');
+                    if (cleanK === target) {
+                        return row[k];
+                    }
+                }
+            }
+            return undefined;
+        }
+
+        // Excel Loader Flexible y Robusto con Microred
+        document.getElementById('excelFileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const dataArr = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(dataArr, {type: 'array'});
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet);
+
+                    if (!json || json.length === 0) {
+                        alert('El archivo Excel seleccionado parece estar vacío o no contiene datos válidos.');
+                        return;
+                    }
+
+                    rawData = json.map(r => {
+                        const eessVal = getColValue(r, ['establecimiento', 'eess', 'nom_eess', 'nombre']) || '';
+                        const microredVal = getColValue(r, ['microred', 'micro_red', 'micro red', 'red']) || '';
+                        const periodoVal = getColValue(r, ['aÃ±o mes', 'año mes', 'periodo', 'ao mes', 'a?o mes', 'anomes']) || '';
+                        
+                        return {
+                            eess: String(eessVal).trim(),
+                            microred: String(microredVal).trim(),
+                            periodo: String(periodoVal).trim(),
+                            receta_ventas: parseFloat(getColValue(r, ['receta ventas', 'receta_ventas', 'rec_ventas']) || 0),
+                            recetas_sis: parseFloat(getColValue(r, ['recetas sis', 'recetas_sis', 'rec_sis']) || 0),
+                            recetas_intervencion: parseFloat(getColValue(r, ['recetas intervencion', 'recetas intervencion ', 'recetas_intervencion', 'rec_intervencion']) || 0),
+                            rec_exo: parseFloat(getColValue(r, ['rec_exo', 'recetas exo', 'recetas exonerados']) || 0),
+                            rec_soat: parseFloat(getColValue(r, ['rec_soat', 'recetas soat']) || 0),
+                            rec_dn: parseFloat(getColValue(r, ['rec_dn', 'recetas dn']) || 0),
+                            ventas: parseFloat(getColValue(r, ['ventas', 'monto_ventas']) || 0),
+                            sis: parseFloat(getColValue(r, ['sis', 'monto_sis']) || 0),
+                            intervencion: parseFloat(getColValue(r, ['intervencion sanitaria', 'intervencion_sanitaria', 'intervencion', 'monto_intervencion']) || 0),
+                            exo: parseFloat(getColValue(r, ['exo', 'exonerado', 'exonerados']) || 0),
+                            soat: parseFloat(getColValue(r, ['soat', 'monto_soat']) || 0),
+                            dn: parseFloat(getColValue(r, ['dn', 'defensa_nacional']) || 0)
+                        };
+                    });
+
+                    initDashboard();
+                    alert(`¡Excel cargado con éxito! Se procesaron ${rawData.length} registros.`);
+                } catch (err) {
+                    console.error("Error al procesar Excel:", err);
+                    alert('Ocurrió un error al leer el archivo Excel. Asegúrate de seleccionar una plantilla compatible de SISMED.');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        // Garantiza re-render de gráficos al redimensionar pantalla/zoom
+        window.onresize = function() {
+            if (currentFilteredData && currentFilteredData.length > 0) {
+                updateCharts(currentFilteredData);
+            }
+        };
+
+        window.onload = initDashboard;
+    </script>
+</body>
+</html>

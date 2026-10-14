@@ -453,8 +453,11 @@
             </div>
             <div class="header-actions">
                 <input type="file" id="excelFileInput" accept=".xlsx, .xls" style="display: none;">
-                <button class="file-upload-btn" onclick="document.getElementById('excelFileInput').click()">
-                    <i class="fa-solid fa-file-excel"></i> Cargar Otro Excel
+                <button class="file-upload-btn" id="btnActualizar" onclick="cargarDesdeGitHub()" title="Recarga el Excel desde GitHub">
+                    <i class="fa-solid fa-rotate" id="iconoActualizar"></i> Actualizar Datos
+                </button>
+                <button class="file-upload-btn" style="background:rgba(129,140,248,0.15);border-color:rgba(129,140,248,0.4);color:#818cf8;" onclick="document.getElementById('excelFileInput').click()" title="Cargar archivo local">
+                    <i class="fa-solid fa-file-excel"></i> Cargar Local
                 </button>
             </div>
         </div>
@@ -968,7 +971,139 @@
             }
         };
 
-        window.onload = initDashboard;
+        // =====================================================================
+        // AUTO-CARGA DESDE GITHUB RAW
+        // Cada vez que subes TFORMATO.XLS.xlsx a GitHub, el dashboard lo lee
+        // automáticamente sin necesidad de acción manual.
+        // =====================================================================
+        const GITHUB_EXCEL_URL = 'https://raw.githubusercontent.com/sismed-chimbote/VALORIZADO-EESS/main/TFORMATO.XLS.xlsx';
+
+        // Overlay de carga
+        const loadingOverlay = document.createElement('div');
+        loadingOverlay.id = 'loadingOverlay';
+        loadingOverlay.innerHTML = `
+            <div style="
+                position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;
+                background:rgba(15,23,42,0.92);backdrop-filter:blur(8px);
+                display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;
+            ">
+                <div style="
+                    width:64px;height:64px;border:4px solid rgba(56,189,248,0.2);
+                    border-top-color:#38bdf8;border-radius:50%;animation:spin 0.9s linear infinite;
+                "></div>
+                <div style="text-align:center;">
+                    <div style="font-size:1.2rem;font-weight:700;color:#f8fafc;margin-bottom:0.4rem;">Cargando datos desde GitHub...</div>
+                    <div id="loadingMsg" style="font-size:0.88rem;color:#94a3b8;">Descargando TFORMATO.XLS.xlsx</div>
+                </div>
+            </div>
+            <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+        `;
+        document.body.appendChild(loadingOverlay);
+
+        function mostrarOverlay(visible) {
+            loadingOverlay.style.display = visible ? 'block' : 'none';
+        }
+
+        function setLoadingMsg(msg) {
+            const el = document.getElementById('loadingMsg');
+            if (el) el.textContent = msg;
+        }
+
+        function parsearExcelBuffer(buffer) {
+            const dataArr = new Uint8Array(buffer);
+            const workbook = XLSX.read(dataArr, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const json = XLSX.utils.sheet_to_json(worksheet);
+
+            if (!json || json.length === 0) {
+                throw new Error('El archivo Excel está vacío o no tiene datos válidos.');
+            }
+
+            return json.map(r => {
+                const eessVal     = getColValue(r, ['establecimiento','eess','nom_eess','nombre']) || '';
+                const microredVal = getColValue(r, ['microred','micro_red','micro red','red']) || '';
+                const periodoVal  = getColValue(r, ['año mes','a\u00f1o mes','periodo','anomes','ao mes','a?o mes']) || '';
+                return {
+                    eess:                 String(eessVal).trim(),
+                    microred:             String(microredVal).trim(),
+                    periodo:              String(periodoVal).trim(),
+                    receta_ventas:        parseFloat(getColValue(r,['receta ventas','receta_ventas','rec_ventas'])||0),
+                    recetas_sis:          parseFloat(getColValue(r,['recetas sis','recetas_sis','rec_sis'])||0),
+                    recetas_intervencion: parseFloat(getColValue(r,['recetas intervencion','recetas intervencion ','recetas_intervencion','rec_intervencion'])||0),
+                    rec_exo:              parseFloat(getColValue(r,['rec_exo','recetas exo','recetas exonerados'])||0),
+                    rec_soat:             parseFloat(getColValue(r,['rec_soat','recetas soat'])||0),
+                    rec_dn:               parseFloat(getColValue(r,['rec_dn','recetas dn'])||0),
+                    ventas:               parseFloat(getColValue(r,['ventas','monto_ventas'])||0),
+                    sis:                  parseFloat(getColValue(r,['sis','monto_sis'])||0),
+                    intervencion:         parseFloat(getColValue(r,['intervencion sanitaria','intervencion_sanitaria','intervencion','monto_intervencion'])||0),
+                    exo:                  parseFloat(getColValue(r,['exo','exonerado','exonerados'])||0),
+                    soat:                 parseFloat(getColValue(r,['soat','monto_soat'])||0),
+                    dn:                   parseFloat(getColValue(r,['dn','defensa_nacional'])||0)
+                };
+            });
+        }
+
+        async function cargarDesdeGitHub() {
+            // Animar ícono del botón
+            const icono = document.getElementById('iconoActualizar');
+            const btn   = document.getElementById('btnActualizar');
+            if (icono) icono.style.animation = 'spin 0.9s linear infinite';
+            if (btn)   btn.disabled = true;
+
+            mostrarOverlay(true);
+            setLoadingMsg('Conectando con GitHub...');
+
+            try {
+                // Usar timestamp para evitar caché del navegador
+                const url = GITHUB_EXCEL_URL + '?t=' + Date.now();
+                setLoadingMsg('Descargando TFORMATO.XLS.xlsx...');
+
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`GitHub respondió con error ${response.status}. Verifica que el archivo exista en el repositorio.`);
+                }
+
+                setLoadingMsg('Procesando datos del Excel...');
+                const buffer = await response.arrayBuffer();
+                rawData = parsearExcelBuffer(buffer);
+
+                setLoadingMsg(`✅ ${rawData.length} registros cargados correctamente`);
+                await new Promise(r => setTimeout(r, 800)); // breve pausa visual
+
+                initDashboard();
+                mostrarOverlay(false);
+
+            } catch (err) {
+                console.error('Error al cargar desde GitHub:', err);
+                setLoadingMsg('⚠️ ' + err.message);
+                // Si hay datos embebidos, usarlos como fallback
+                if (rawData && rawData.length > 0) {
+                    await new Promise(r => setTimeout(r, 2000));
+                    mostrarOverlay(false);
+                    initDashboard();
+                } else {
+                    // Sin datos de ningún tipo — mostrar error permanente
+                    const msgEl = document.getElementById('loadingMsg');
+                    if (msgEl) msgEl.innerHTML = `
+                        ${err.message}<br><br>
+                        <button onclick="mostrarOverlay(false);initDashboard();" style="
+                            background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.4);
+                            color:#38bdf8;padding:0.6rem 1.2rem;border-radius:8px;cursor:pointer;
+                            font-size:0.9rem;font-weight:600;
+                        ">Continuar con datos de ejemplo</button>
+                    `;
+                }
+            } finally {
+                if (icono) icono.style.animation = '';
+                if (btn)   btn.disabled = false;
+            }
+        }
+
+        // Al cargar la página, intentar cargar desde GitHub automáticamente
+        window.onload = function() {
+            cargarDesdeGitHub();
+        };
     </script>
 </body>
 </html>
